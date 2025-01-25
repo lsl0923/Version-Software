@@ -9,10 +9,13 @@
 #include <opencv2/opencv.hpp>
 #include "Gray2BGR.h"
 // 构造函数
-Gray2BGR::Gray2BGR() :  ToolsBase(){
+Gray2BGR::Gray2BGR() :  ToolsBase()
+{
     // 初始化或配置任何所需的成员变量
     std::shared_ptr<OutPutsBase> out = std::make_shared<Outputs>();
     outputs = out;
+    name_ = "Gray2BGR";
+    toolId_ = name_+generateUniqueTimestamp();
 }
 
 // 析构函数
@@ -34,8 +37,8 @@ int Gray2BGR::runSub()
     {
         auto end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double, std::milli> elapsed = end - start;
-        outputs->outputs_[0] = img;
-        outputs->setErrroCode_(-1);
+         outputs->addOutput("Img",img);
+        outputs->setErrorCode(-1);
         outputs->setRunTime(elapsed.count());
         qDebug() << "type error: need Mat";
 
@@ -44,10 +47,10 @@ int Gray2BGR::runSub()
     if (img.empty() || img.channels() != 1)
     {
         qWarning() << "Received an invalid QImage!";
-        outputs->outputs_[0] = img;
+         outputs->addOutput("Img",img);
         auto end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double, std::milli> elapsed = end - start;
-        outputs->setErrroCode_(-1);
+        outputs->setErrorCode(-1);
         outputs->setRunTime(elapsed.count());
 
         return -1;
@@ -56,9 +59,9 @@ int Gray2BGR::runSub()
     cv::cvtColor(img, BGRMat, cv::COLOR_GRAY2BGR);
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double, std::milli> elapsed = end - start;
-    outputs->setErrroCode_(1);
+    outputs->setErrorCode(1);
     outputs->setRunTime(elapsed.count());
-    outputs->outputs_[0] = BGRMat;
+    outputs->addOutput("Img",BGRMat);
     return 1;
 }
 

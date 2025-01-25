@@ -8,15 +8,17 @@
 
 
 
+
+
 class Manager :public ManagerBase {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID  "com.ManagerBase")
 
 public:
     explicit Manager();
-    virtual  ToolsBase* createTools(const ToolsInfo& pluginName) ;
+    virtual  ToolsBase* createTools(const ToolsInfo& pluginName) override;
 
-    // 获取插件工具列表
+    // 获取插件工具
 
 
 };

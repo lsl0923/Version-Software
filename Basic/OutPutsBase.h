@@ -3,15 +3,14 @@
 
 #include <vector>
 #include <any>
-
+#include<string>
+#include<map>
 class OutPutsBase
 {
 public:
     // 默认构造函数
     OutPutsBase();
 
-    // 带输出参数的构造函数
-    OutPutsBase(std::vector<std::any> outputs);
 
     // 初始化函数
     void init();
@@ -22,8 +21,11 @@ public:
     double getRunTime() const ;
 
     void setRunTime(double runTime);
-    std::vector<std::any> outputs_;
+    void addOutput(const std::string& outputId, const std::any& value);
+    std::any getOutput(const std::string& outputId) const;
+
 protected:
+    std::map<std::string, std::any> outputs_;
     // 受保护的子类初始化接口
     virtual void initSub() = 0;
     double errorCode_;

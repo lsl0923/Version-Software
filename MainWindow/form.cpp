@@ -19,7 +19,7 @@ Form::Form(QWidget *parent)
 {
     // TODO 封装优化
     qRegisterMetaType<ToolsInfo>();
-    qRegisterMetaTypeStreamOperators<ToolsInfo>("ToolsInfo");
+   // qRegisterMetaTypeStreamOperators<ToolsInfo>("ToolsInfo");
 
     ui->setupUi(this);
     imageViewer_ = new ImageViewer(ui->frame);
@@ -180,7 +180,6 @@ void Form::on_pushButton_clicked()
         if(finalOutput[0].type() == typeid(cv::Mat))
         {
             imageViewer_->setImage(std::any_cast<cv::Mat>(finalOutput[0]));
-
         }
         qDebug() << "Tool flow executed successfully!";
     } else {

@@ -14,6 +14,9 @@ BGR2Gray::BGR2Gray() :  ToolsBase()
     // 初始化或配置任何所需的成员变量
     std::shared_ptr<OutPutsBase> out = std::make_shared<Outputs>();
     outputs = out;
+    name_ = "BGR2Gray";
+    toolId_ = name_+generateUniqueTimestamp();
+
 }
 
 // 析构函数
@@ -37,9 +40,9 @@ int BGR2Gray::runSub()
         auto end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double, std::milli> elapsed = end - start;
 
-        outputs->setErrroCode_(-1);
+        outputs->setErrorCode(-1);
         outputs->setRunTime(elapsed.count());
-        outputs->outputs_[0] = img;
+        outputs->addOutput("Img",img);
         qDebug() << "type error: need Mat";
 
     }
@@ -49,19 +52,19 @@ int BGR2Gray::runSub()
         qWarning() << "Received an invalid QImage!";
         auto end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double, std::milli> elapsed = end - start;
-        outputs->setErrroCode_(-1);
+        outputs->setErrorCode(-1);
         outputs->setRunTime(elapsed.count());
-        outputs->outputs_[0] = img;
+        outputs->addOutput("Img",img);
         return -1;
     }
 
     // 2. 将 BGR 图像转换为灰度图像
     cv::Mat grayMat;
     cv::cvtColor(img, grayMat, cv::COLOR_BGR2GRAY);
-    outputs->outputs_[0]=grayMat;
+       outputs->addOutput("Img",grayMat);
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double, std::milli> elapsed = end - start;
-    outputs->setErrroCode_(1);
+    outputs->setErrorCode(1);
     outputs->setRunTime(elapsed.count());
     return 1;
 }
