@@ -113,12 +113,6 @@
 			null
 		],
 		[
-			"/home/lsl/Code/Basic/OutPutsBase.h",
-			"MU",
-			"EWIEGA46WW/moc_OutPutsBase.cpp",
-			null
-		],
-		[
 			"/home/lsl/Code/Basic/ToolsBase.h",
 			"MU",
 			"EWIEGA46WW/moc_ToolsBase.cpp",
@@ -191,7 +185,6 @@
 	"SOURCES" : 
 	[
 		[ "/home/lsl/Code/Basic/ImageViewer.cpp", "MU", null ],
-		[ "/home/lsl/Code/Basic/OutPutsBase.cpp", "MU", null ],
 		[ "/home/lsl/Code/Basic/ToolsBase.cpp", "MU", null ],
 		[ "/home/lsl/Code/Basic/managerbase.cpp", "MU", null ]
 	],

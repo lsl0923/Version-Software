@@ -20,7 +20,7 @@ add_library(Basic SHARED
   Basic_global.h
   ToolsBase.cpp
   ToolsBase.h
-  OutPutsBase.h OutPutsBase.cpp
+
   ImageViewer.h ImageViewer.cpp
   managerbase.h managerbase.cpp
 )

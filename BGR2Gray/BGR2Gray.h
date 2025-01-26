@@ -18,7 +18,10 @@ public:
 
     // 重写 runSub 方法
     int runSub() override;
-
+    bool  validateInputs(const std::vector<IOData>& data) override;
+    std::vector<std::string> getInputsList() override;
+    std::vector<std::string> getOutputsList() override;
+    void setName() override;
 };
 
 

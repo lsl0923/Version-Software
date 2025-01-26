@@ -4,14 +4,14 @@
 #include <QPluginLoader>
 #include<QTreeView>
 #include<QStandardItemModel>
-
+#include <QMenu>
 #include "ImageViewer.h"
 #include "ui_form.h"
 #include "ToolsBase.h"
 #include "form.h"
 #include "managerbase.h"
 #include "toolitem.h"
-
+#include"IndexDelegate.h"
 
 Form::Form(QWidget *parent)
     : QWidget(parent)
@@ -22,8 +22,15 @@ Form::Form(QWidget *parent)
    // qRegisterMetaTypeStreamOperators<ToolsInfo>("ToolsInfo");
 
     ui->setupUi(this);
+
     imageViewer_ = new ImageViewer(ui->frame);
     // 获取中心控件并设置布局
+    ui->RunWidget->setContextMenuPolicy(Qt::CustomContextMenu);
+    // 连接右键菜单信号
+    connect( ui->RunWidget, &QListWidget::customContextMenuRequested, this, &Form::onRightClick);
+    // 为 QListWidget 设置自定义委托
+    IndexDelegate* delegate = new IndexDelegate(this);
+    ui->RunWidget->setItemDelegate(delegate);
 
     ui->horizontalLayout->addWidget(imageViewer_);
     // 加载测试图像
@@ -167,8 +174,8 @@ void Form::on_pushButton_clicked()
         qWarning() << "Initial image is empty!";
         return;
     }
-    std::vector<std::any> initialInputs;
-    initialInputs.push_back(img);
+    IOConfig  initialInputs;
+    initialInputs.addData("image",img);
     // 设置工具流的初始输入
     toolsFlows_[0].setInitialInput(initialInputs);
 
@@ -176,13 +183,16 @@ void Form::on_pushButton_clicked()
     if (toolsFlows_[0].executeFlow())
     {
         // 获取最终输出并更新图像
-        std::vector<std::any> finalOutput = toolsFlows_[0].getFinalOutput();
-        if(finalOutput[0].type() == typeid(cv::Mat))
+        IOConfig finalOutput = toolsFlows_[0].getFinalOutput();
+        if(finalOutput.getDataValue("image").type() == typeid(cv::Mat))
         {
-            imageViewer_->setImage(std::any_cast<cv::Mat>(finalOutput[0]));
+            imageViewer_->setImage(std::any_cast<cv::Mat>(finalOutput.getDataValue("image")));
+
         }
-        qDebug() << "Tool flow executed successfully!";
-    } else {
+     qDebug() << "Tool flow executed successfully!";
+    }
+    else
+    {
         qWarning() << "Tool flow execution failed!";
     }
 }
@@ -195,7 +205,9 @@ void Form::on_pushButton_4_clicked()
 {
     // 获取选中的项
     QListWidgetItem* selectedItem = ui->RunWidget->currentItem();
-
+    ToolItem *tool = dynamic_cast< ToolItem *> (selectedItem);
+    ToolsFlow& flow = toolsFlows_[0];
+    flow.removeToolById(tool->getToolInstance()->getToolId());
     delete selectedItem;
 
 }
@@ -294,4 +306,147 @@ void Form::on_ToolsWight_doubleClicked(const QModelIndex &index)
 
 }
 
+
+void Form::onRightClick(const QPoint& pos) {
+    QListWidgetItem* item = ui->RunWidget->itemAt(pos);
+    ToolItem* toolItem = dynamic_cast<ToolItem*>(item);
+    if (!item) return; // 如果右键点击处没有 item，直接返回
+
+    QMenu contextMenu;
+    QAction* actionSetInput = new QAction("Set Input", &contextMenu);
+
+
+    // 动态生成输入需求子菜单
+    QMenu* inputMenu = new QMenu("Choose Input", &contextMenu);
+
+    std::string toolId = toolItem->getToolInstance()->getToolId();
+    setInputMenu(toolId,inputMenu);
+    // 如果没有有效的输入需求，将 "Set Input" 菜单置为不可用
+    if (inputMenu->isEmpty())
+    {
+        actionSetInput->setEnabled(false);
+        actionSetInput->setText("No inputs available");
+    } else
+    {
+        actionSetInput->setMenu(inputMenu);
+    }
+
+    contextMenu.addAction(actionSetInput);
+
+    // 显示右键菜单
+    contextMenu.exec(ui->RunWidget->mapToGlobal(pos));
+}
+
+void Form::setInputMenu(const std::string& toolId, QMenu* inputMenu) {
+    // 确保 Flow 存在
+    if (toolsFlows_.empty()) {
+        qDebug() << "No tools flow available!";
+        return;
+    }
+
+    // 查找指定工具
+    ToolsFlow& flow = toolsFlows_[0];  // 假定选定第一个 Flow
+    std::shared_ptr<ToolsBase> tool = flow.findToolById(toolId);
+    if (!tool) {
+        qDebug() << "Tool not found with ID:" << QString::fromStdString(toolId);
+        return;
+    }
+
+    // 获取工具的输入需求列表
+    std::vector<std::string> inputs = tool->getInputsList();
+    if (inputs.empty())
+    {
+        QAction* noInputAction = new QAction("No inputs required", inputMenu);
+        noInputAction->setEnabled(false);
+        inputMenu->addAction(noInputAction);
+        return;
+    }
+
+    // 动态获取位于当前工具之前的工具输出列表
+    std::vector<std::shared_ptr<ToolsBase>> previousTools;
+    bool isCurrentToolFound = false;
+
+    for (const auto& flowTool : flow.getTools())
+    {
+        if (!flowTool) continue;
+
+        // 遍历到当前工具时停止
+        if (flowTool->getToolId() == toolId)
+        {
+            isCurrentToolFound = true;
+            break;
+        }
+
+        // 收集当前工具
+        previousTools.push_back(flowTool);
+    }
+
+    if (!isCurrentToolFound)
+    {
+        qDebug() << "Tool ID not found in the current flow!";
+        return;
+    }
+
+    // 为每个输入需求创建子菜单
+    for (const std::string& inputName : inputs)
+    {
+        QMenu* inputSubMenu = new QMenu(QString::fromStdString(inputName), inputMenu);
+        int index = 1;
+        // 遍历位于当前工具之前的工具，生成子菜单
+        for (const auto& prevTool : previousTools)
+        {
+            std::vector<std::string> outputList = prevTool->getOutputsList();
+            if (outputList.empty())
+            {
+                continue;
+            }
+
+            QString toolMenuName = QString("%1 (%2)")
+                                       .arg(QString::fromStdString(prevTool->getName()))
+                                       .arg(index);
+            index++;
+            QMenu* toolMenu = new QMenu(toolMenuName, inputSubMenu);
+
+            for (const std::string& outputId : outputList)
+            {
+                QString actionText = QString::fromStdString(outputId);
+                QAction* outputAction = new QAction(actionText, toolMenu);
+
+                // 绑定选中逻辑：将指定输出配置为当前工具的输入
+               /// TODO:: 判断数据类型兼容性
+                connect(outputAction, &QAction::triggered, this, [toolId, inputName, prevTool, outputId, &flow]()
+                    {
+                    qDebug() << "Configuring input for tool ID:" << QString::fromStdString(toolId)
+                    << "Input:" << QString::fromStdString(inputName)
+                    << "Using output from tool ID:" << QString::fromStdString(prevTool->getToolId())
+                    << "Output ID:" << QString::fromStdString(outputId);
+
+                    // 执行输入配置逻辑
+                  flow.setInput(toolId, prevTool->getToolId(), inputName, outputId);
+
+                });
+
+                toolMenu->addAction(outputAction);
+            }
+
+            if (toolMenu->isEmpty())
+            {
+                QAction* noOutputsAction = new QAction("No outputs available", toolMenu);
+                noOutputsAction->setEnabled(false);
+                toolMenu->addAction(noOutputsAction);
+            }
+
+            inputSubMenu->addMenu(toolMenu);
+        }
+
+        if (inputSubMenu->isEmpty())
+        {
+            QAction* noToolsAction = new QAction("No tools available", inputSubMenu);
+            noToolsAction->setEnabled(false);
+            inputSubMenu->addAction(noToolsAction);
+        }
+
+        inputMenu->addMenu(inputSubMenu);
+    }
+}
 

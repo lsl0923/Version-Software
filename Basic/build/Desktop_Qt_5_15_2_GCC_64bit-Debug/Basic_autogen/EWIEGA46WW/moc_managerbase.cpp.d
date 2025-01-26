@@ -1,7 +1,6 @@
 /home/lsl/Code/Basic/build/Desktop_Qt_5_15_2_GCC_64bit-Debug/Basic_autogen/EWIEGA46WW/moc_managerbase.cpp: /home/lsl/Code/Basic/managerbase.h \
   /home/lsl/Code/Basic/build/Desktop_Qt_5_15_2_GCC_64bit-Debug/Basic_autogen/moc_predefs.h \
   /home/lsl/Code/Basic/Basic_global.h \
-  /home/lsl/Code/Basic/OutPutsBase.h \
   /home/lsl/Code/Basic/ToolsBase.h \
   /opt/Qt/5.15.2/gcc_64/include/QtCore/QObject \
   /opt/Qt/5.15.2/gcc_64/include/QtCore/qalgorithms.h \
@@ -158,7 +157,6 @@
   /usr/include/c++/13/bits/vector.tcc \
   /usr/include/c++/13/cctype \
   /usr/include/c++/13/cerrno \
-  /usr/include/c++/13/chrono \
   /usr/include/c++/13/climits \
   /usr/include/c++/13/clocale \
   /usr/include/c++/13/compare \

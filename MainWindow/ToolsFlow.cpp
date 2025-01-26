@@ -20,44 +20,43 @@ void ToolsFlow::addTool(const std::shared_ptr<ToolsBase>& tool)
     tools_.push_back(tool);
 }
 
-void ToolsFlow::setInitialInput(const  std::vector<std::any>& input)
+void ToolsFlow::setInitialInput(const  IOConfig& input)
 {
     initialInput_ = input;
 }
 
-bool ToolsFlow::executeFlow()
+int ToolsFlow::executeFlow()
 {
     if (tools_.empty())
     {
         qDebug()<< "No tools in the flow!" ;
-        return false;
+        return -1;
     }
-
-    std::vector<std::any> currentInput = initialInput_;
 
     for (const auto& tool : tools_)
     {
         if (!tool)
         {
             qDebug()<< "Invalid tool in the flow!" ;
-            return false;
+            return -1;
         }
 
-        tool->setInputs(currentInput);
-
+        setToolInputs(tool);
         // 执行工具
         if (tool->run() != 1)
         {
             qDebug() << "Tool execution failed!" ;
         }
-        finalOutput_.push_back(tool->getOutputs()->getOutput("Img")); // 保存最终输出
+
+
+        finalOutput_ = tool->getOutputs(); // 保存最终输出
 
     }
 
-    return true;
+    return 1;
 }
 
-std::vector<std::any> ToolsFlow::getFinalOutput() const
+IOConfig ToolsFlow::getFinalOutput() const
 {
     return finalOutput_;
 }
@@ -72,15 +71,17 @@ std::string ToolsFlow::getFlowID()
     return flowID_;
 }
 
-void ToolsFlow::setInput(const std::string& targetToolId, const std::string& sourceToolId, const std::string& sourceOutputId)
+void ToolsFlow::setInput(const std::string& targetToolId, const std::string& sourceToolId,const std::string& inputName, const std::string& sourceOutputId)
 {
-    inputConfigs_.emplace_back(targetToolId, sourceToolId, sourceOutputId);
+    inputConfigs_.emplace_back(targetToolId, sourceToolId,inputName, sourceOutputId);
 }
 
 
 bool ToolsFlow::setToolInputs(const std::shared_ptr<ToolsBase>& tool)
 {
-    std::vector<std::any> currentInputs;
+
+//
+    IOConfig currentInputs = initialInput_;
 
     for (const auto& inputConfig : inputConfigs_)
     {
@@ -98,8 +99,8 @@ bool ToolsFlow::setToolInputs(const std::shared_ptr<ToolsBase>& tool)
             // 查找来源工具的指定输出
             try
             {
-                 auto outputValue = sourceTool->getOutputs()->getOutput(inputConfig.sourceOutputId);
-                 currentInputs.push_back(outputValue);
+                auto outputValue = sourceTool->getOutputs().getDataValue(inputConfig.sourceOutputId);
+                currentInputs.addData(inputConfig.inputName,outputValue);
             }
 
             catch(const std::exception& e)
@@ -111,13 +112,35 @@ bool ToolsFlow::setToolInputs(const std::shared_ptr<ToolsBase>& tool)
     }
 
     tool->setInputs(currentInputs);
+
     return true;
 }
-std::shared_ptr<ToolsBase> ToolsFlow::findToolById(const std::string& toolId) const {
-    for (const auto& tool : tools_) {
-        if (tool && tool->getToolId() == toolId) {
+std::shared_ptr<ToolsBase> ToolsFlow::findToolById(const std::string& toolId) const
+{
+    for (const auto& tool : tools_)
+    {
+        if (tool && tool->getToolId() == toolId)
+        {
             return tool;
         }
     }
     return nullptr;
+}
+std::vector<std::shared_ptr<ToolsBase>> ToolsFlow::  getTools()
+{
+     return tools_;
+}
+bool ToolsFlow::removeToolById(const std::string& toolId)
+{
+    auto it = std::find_if(tools_.begin(), tools_.end(),
+                           [&toolId](const std::shared_ptr<ToolsBase>& tool)
+                           {
+                               return tool && tool->getToolId() == toolId;
+                           });
+
+    if (it != tools_.end()) {
+        tools_.erase(it); // 从工具列表中移除
+        return true;
+    }
+    return false; // 未找到指定的工具
 }

@@ -3,8 +3,6 @@ Basic_autogen/timestamp: \
 	/home/lsl/Code/Basic/CMakeLists.txt \
 	/home/lsl/Code/Basic/ImageViewer.cpp \
 	/home/lsl/Code/Basic/ImageViewer.h \
-	/home/lsl/Code/Basic/OutPutsBase.cpp \
-	/home/lsl/Code/Basic/OutPutsBase.h \
 	/home/lsl/Code/Basic/ToolsBase.cpp \
 	/home/lsl/Code/Basic/ToolsBase.h \
 	/home/lsl/Code/Basic/build/Desktop_Qt_5_15_2_GCC_64bit-Debug/.qtc/package-manager/auto-setup.cmake \

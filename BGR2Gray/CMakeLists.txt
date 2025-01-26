@@ -22,7 +22,7 @@ add_library(BGR2Gray MODULE
   BGR2Gray.h
   Gray2BGR.h Gray2BGR.cpp
   Manager.h Manager.cpp
-  Outputs.h Outputs.cpp
+
 )
 
 target_link_libraries(BGR2Gray PRIVATE Qt${QT_VERSION_MAJOR}::Core)

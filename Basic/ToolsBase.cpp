@@ -1,36 +1,47 @@
 #include "ToolsBase.h"
 #include<string>
+#include<QDebug>
+
+
+
+
+
+
+
 ToolsBase::ToolsBase()
 {
-
+    toolId_ = generateUniqueTimestamp();
 }
-
+ToolsBase:: ~ToolsBase()
+{
+    qDebug()<<"~ToolsBase";
+}
 int ToolsBase::run()
 {
     return runSub();
 }
 
-const std::vector<std::any>& ToolsBase::getInputs() const
+const IOConfig& ToolsBase::getInputs() const
 {
-    return inputs;
+    return inputs_;
 }
 
-
-void ToolsBase::setInputs(const std::vector<std::any>& newInputs)
+// 设置输入
+void ToolsBase::setInputs(const IOConfig& newInputs)
 {
-    inputs = newInputs;
+    inputs_ = newInputs;
 }
 
-
-std::shared_ptr<OutPutsBase> ToolsBase::getOutputs() const
+// 获取输出
+const IOConfig& ToolsBase::getOutputs() const
 {
-    return outputs;
+    return outputs_;
 }
 
-
-void ToolsBase::setOutputs(const std::shared_ptr<OutPutsBase>& newOutputs)
+// 设置输出
+void ToolsBase::setOutputs(const IOConfig& newOutputs)
 {
-    outputs = newOutputs;
+    outputs_ = newOutputs;
 }
 std::string ToolsBase::getName()
 {
@@ -38,7 +49,7 @@ std::string ToolsBase::getName()
 }
  std::string ToolsBase:: getToolId()
 {
-     return toolId_;
+    return name_ + toolId_;
 }
 std::string ToolsBase::generateUniqueTimestamp()
 {

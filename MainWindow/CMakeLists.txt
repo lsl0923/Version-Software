@@ -33,6 +33,7 @@ add_library(MainWindow SHARED
   form.h form.cpp form.ui
   toolitem.h toolitem.cpp
   ToolsFlow.h ToolsFlow.cpp
+  IndexDelegate.h IndexDelegate.cpp
 
 )
 
