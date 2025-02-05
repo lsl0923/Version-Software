@@ -1,0 +1,12 @@
+#ifndef OPENCVCAMERA_GLOBAL_H
+#define OPENCVCAMERA_GLOBAL_H
+
+#include <QtCore/qglobal.h>
+
+#if defined(OPENCVCAMERA_LIBRARY)
+#define OPENCVCAMERA_EXPORT Q_DECL_EXPORT
+#else
+#define OPENCVCAMERA_EXPORT Q_DECL_IMPORT
+#endif
+
+#endif // OPENCVCAMERA_GLOBAL_H

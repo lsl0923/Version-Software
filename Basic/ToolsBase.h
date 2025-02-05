@@ -3,7 +3,6 @@
 #include<any>
 #include "Basic_global.h"
 #include<vector>
-#include<memory>
 
 #include<string>
 //#include<chrono>
@@ -42,9 +41,11 @@ struct IOConfig
     // 查找数据
     std::any getDataValue(const std::string& name) const
     {
-        for (const auto& d : data) {
-            if (d.name == name) {
-                return d.value; // 找到匹配项，返回值
+        for (const auto& d : data)
+        {
+            if (d.name == name)
+            {
+                return d.value;
             }
         }
         return {}; // 没有找到，返回空值
@@ -52,6 +53,7 @@ struct IOConfig
 
 
     // 获取所有数据的名称列表
+    /*
     std::vector<std::string> getDataNames() const
     {
         std::vector<std::string> names;
@@ -60,6 +62,7 @@ struct IOConfig
         }
         return names;
     }
+*/
 };
 
 class BASIC_EXPORT ToolsBase
@@ -79,10 +82,14 @@ public:
     std::string getName();
     virtual std::vector<std::string> getInputsList() = 0;
     virtual std::vector<std::string> getOutputsList() = 0;
+    virtual std::string getInputType(const std::string& inputName) = 0;  // 获取某个输入的类型
+    virtual std::string getOutputType(const std::string& outputName) = 0; // 获取某个输出的类型
+    static bool isMatchType(const  std::string& type_1,const std::string& type_2);
 protected:
     virtual int runSub() = 0;
     virtual void setName() = 0;
-    virtual bool validateInputs(const std::vector<IOData>& data) = 0;
+    virtual bool validateInputs() = 0;
+
     IOConfig outputs_;
     IOConfig inputs_;
     std::string name_;

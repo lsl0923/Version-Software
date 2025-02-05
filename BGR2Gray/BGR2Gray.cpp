@@ -23,6 +23,11 @@ BGR2Gray::~BGR2Gray() {}
 // 插件的具体功能：将图像从 BGR 转换为灰度
 int BGR2Gray::runSub()
 {
+    if(!validateInputs())
+    {
+        qDebug() << "Input ERROR!";
+        return -1;
+    }
     auto start = std::chrono::high_resolution_clock::now();
     //0 输出图像，1运行结果代码，2时间
     //outputs->init();
@@ -69,8 +74,9 @@ int BGR2Gray::runSub()
 }
 
 
-bool BGR2Gray::validateInputs(const std::vector<IOData>& data)
+bool BGR2Gray::validateInputs()
 {
+    const std::vector<IOData>& data = inputs_.data;
     // 查找是否存在名为 "image" 的输入
     auto it = std::find_if(data.begin(), data.end(), [](const IOData& io){
         return io.name == "image";
@@ -112,4 +118,21 @@ std::vector<std::string> BGR2Gray::getOutputsList()
     std::vector<std::string> vec;
     vec.push_back("image");
     return vec;
+}
+
+std::string BGR2Gray:: getInputType(const std::string& inputName)
+{
+    if(inputName == "image")
+    {
+        return "cv::Mat";
+    }
+    return "";
+}
+std::string BGR2Gray::getOutputType(const std::string& outputName)
+{
+    if(outputName == "image")
+    {
+        return "cv::Mat";
+    }
+    return "";
 }

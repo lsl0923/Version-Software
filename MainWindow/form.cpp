@@ -12,6 +12,10 @@
 #include "managerbase.h"
 #include "toolitem.h"
 #include"IndexDelegate.h"
+#include <QFileDialog>
+#include <QStringList>
+#include"InputConfigDialog.h"
+#include "CameraManager.h"
 
 Form::Form(QWidget *parent)
     : QWidget(parent)
@@ -35,9 +39,11 @@ Form::Form(QWidget *parent)
     ui->horizontalLayout->addWidget(imageViewer_);
     // 加载测试图像
     cv::Mat testImage = cv::imread("/home/lsl/图片/截图/s.png");
-    if (!testImage.empty()) {
+    if (!testImage.empty())
+    {
         imageViewer_->setImage(testImage);
-    } else
+    }
+    else
     {
         qWarning() << "Failed to load test image.";
     }
@@ -45,6 +51,8 @@ Form::Form(QWidget *parent)
     QStandardItemModel* model = new QStandardItemModel;
     ui->ToolsWight->setModel(model);
     QString pluginPath = "/home/lsl/Code/BGR2Gray/build/Desktop_Qt_5_15_2_GCC_64bit-Debug/libBGR2Gray.so";
+    loadPlugin(pluginPath);
+    pluginPath = "/home/lsl/Code/ImageLoad/build/Desktop_Qt_5_15_2_GCC_64bit-Debug/libImageLoad.so";
     loadPlugin(pluginPath);
 }
 
@@ -117,7 +125,8 @@ void Form::loadPlugin(const QString& path)
 
     if (plugin) {
         ManagerBase* manager = dynamic_cast<ManagerBase*>(plugin);
-        if (manager) {
+        if (manager)
+        {
             qDebug() << "Plugin loaded successfully as ToolsBase.";
             std::vector<ToolsInfo> info = manager->getToolsList();
 
@@ -144,7 +153,8 @@ void Form::loadPlugin(const QString& path)
                         parentItem = new QStandardItem(QString::fromStdString(i.type));
                         parentItem->setFlags(parentItem->flags() & ~Qt::ItemIsDragEnabled);
                         model->appendRow(parentItem);
-                    } else
+                    }
+                    else
                     {
                         parentItem = model->itemFromIndex(parentIndexes.first());
                     }
@@ -170,7 +180,8 @@ void Form::loadPlugin(const QString& path)
 void Form::on_pushButton_clicked()
 {
     cv::Mat img = imageViewer_->getImage();
-    if (img.empty()) {
+    if (img.empty())
+    {
         qWarning() << "Initial image is empty!";
         return;
     }
@@ -189,12 +200,13 @@ void Form::on_pushButton_clicked()
             imageViewer_->setImage(std::any_cast<cv::Mat>(finalOutput.getDataValue("image")));
 
         }
-     qDebug() << "Tool flow executed successfully!";
+    qDebug() << "Tool flow executed successfully!";
     }
     else
     {
         qWarning() << "Tool flow execution failed!";
     }
+    //imageViewer_->nextImage();
 }
 
 
@@ -205,6 +217,10 @@ void Form::on_pushButton_4_clicked()
 {
     // 获取选中的项
     QListWidgetItem* selectedItem = ui->RunWidget->currentItem();
+    if(selectedItem == nullptr)
+    {
+        return;
+    }
     ToolItem *tool = dynamic_cast< ToolItem *> (selectedItem);
     ToolsFlow& flow = toolsFlows_[0];
     flow.removeToolById(tool->getToolInstance()->getToolId());
@@ -306,34 +322,80 @@ void Form::on_ToolsWight_doubleClicked(const QModelIndex &index)
 
 }
 
+void Form::showInputConfigDialog(ToolItem* toolItem) {
+    if (!toolItem) return;
+
+    // 获取当前工具的实例
+    std::shared_ptr<ToolsBase> tool = toolItem->getToolInstance();
+    if (!tool) return;
+
+    InputConfigDialog dialog(this,tool->getToolId());
+
+    // 获取当前工具的输入列表
+    const std::vector<std::string>& inputs = tool->getInputsList();
+    if (inputs.empty()) {
+        qDebug() << "No inputs required for this tool.";
+        return;
+    }
+
+    // 获取当前工具之前的所有工具
+    std::vector<std::string> previousToolIds;
+    ToolsFlow& flow = toolsFlows_[0];  // 假设取第一个 Flow
+    std::string toolId = tool->getToolId();
+    bool isCurrentToolFound = false;
+
+    for (const auto& flowTool : flow.getTools()) {
+        if (!flowTool) continue;
+
+        if (flowTool->getToolId() == toolId) {
+            isCurrentToolFound = true;
+            break;
+        }
+
+        // 记录工具 ID 以供选择
+        previousToolIds.push_back(flowTool->getToolId());
+    }
+
+    if (!isCurrentToolFound)
+    {
+        qDebug() << "Tool ID not found in the current flow!";
+        return;
+    }
+
+    // **调用 `addInput`，一次性传入所有输入参数**
+    dialog.addInput(tool, previousToolIds, flow);
+
+    // 显示对话框
+    if (dialog.exec() == QDialog::Accepted)
+    {
+        // 获取用户配置的输入
+        std::vector<InputConfig> inputConfigs = dialog.getInputConfigs();
+
+        // 记录输入配置
+        for ( InputConfig& config : inputConfigs)
+        {
+            flow.setInput(config);
+        }
+
+        qDebug() << "Inputs configured for tool:" << QString::fromStdString(toolId);
+    }
+}
+
 
 void Form::onRightClick(const QPoint& pos) {
     QListWidgetItem* item = ui->RunWidget->itemAt(pos);
     ToolItem* toolItem = dynamic_cast<ToolItem*>(item);
-    if (!item) return; // 如果右键点击处没有 item，直接返回
+    if (!toolItem) return; // 确保 toolItem 存在
 
     QMenu contextMenu;
     QAction* actionSetInput = new QAction("Set Input", &contextMenu);
 
-
-    // 动态生成输入需求子菜单
-    QMenu* inputMenu = new QMenu("Choose Input", &contextMenu);
-
-    std::string toolId = toolItem->getToolInstance()->getToolId();
-    setInputMenu(toolId,inputMenu);
-    // 如果没有有效的输入需求，将 "Set Input" 菜单置为不可用
-    if (inputMenu->isEmpty())
-    {
-        actionSetInput->setEnabled(false);
-        actionSetInput->setText("No inputs available");
-    } else
-    {
-        actionSetInput->setMenu(inputMenu);
-    }
+    // 绑定点击 "Set Input" 时，直接弹出输入配置窗口
+    connect(actionSetInput, &QAction::triggered, this, [this, toolItem]() {
+        showInputConfigDialog(toolItem);
+    });
 
     contextMenu.addAction(actionSetInput);
-
-    // 显示右键菜单
     contextMenu.exec(ui->RunWidget->mapToGlobal(pos));
 }
 
@@ -450,3 +512,58 @@ void Form::setInputMenu(const std::string& toolId, QMenu* inputMenu) {
     }
 }
 
+
+void Form::on_LoadImage_clicked()
+{
+    QStringList filePaths = QFileDialog::getOpenFileNames(this, "Select Images", "", "Images (*.png *.jpg *.bmp)");
+    if (!filePaths.isEmpty())
+    {
+        imageViewer_->loadImages(filePaths);
+    }
+}
+
+
+void Form::on_nextImage_clicked()
+{
+    imageViewer_->nextImage();
+}
+
+
+
+
+
+void Form::on_pushButton_6_clicked()
+{
+    QPluginLoader loader("/home/lsl/Code/OpenCVCamera/build/Desktop_Qt_5_15_2_GCC_64bit-Debug/libOpenCVCamera.so"); // 插件文件路径
+    QObject *plugin = loader.instance();
+    if (!plugin)
+    {
+        qDebug() << "Failed to load plugin:" << loader.errorString();
+
+    }
+
+    cameraManager_ = qobject_cast<CameraManager*>(plugin);
+    if (!cameraManager_)
+    {
+        qDebug() << "Failed to cast plugin to CameraManager";
+    }
+
+    cameraManager_->DetectConnectedCameras();
+    std::shared_ptr<CameraBase> camera = cameraManager_->GetCamera(0);
+
+    camera->StartGrab();
+    bool connected = connect(camera.get(), &CameraBase::newImageReceived, this, &Form::updateImage, Qt::DirectConnection );
+    if (!connected)
+    {
+        qDebug() << "Failed to connect signal and slot!";
+    }
+    else
+    {
+        qDebug() << "Signal and slot connected!";
+    }
+}
+void Form::updateImage(cv::Mat img)
+{
+    imageViewer_->setImage(img);
+    update();
+}

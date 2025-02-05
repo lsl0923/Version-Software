@@ -7,13 +7,17 @@
 #include <opencv2/opencv.hpp>
 #include "ToolsBase.h"
 
-struct InputConfig {
+struct InputConfig
+{
     std::string targetToolId;    // 目标工具的 ID
     std::string sourceToolId;    // 来源工具的 ID
     std::string sourceOutputId;  // 来源工具输出的 ID
     std::string inputName;
+    std::any value;
     InputConfig(const std::string& target, const std::string& source,const std::string& input, const std::string& output)
-        : targetToolId(target), sourceToolId(source), inputName(input), sourceOutputId(output) {}
+        : targetToolId(target), sourceToolId(source), inputName(input), sourceOutputId(output) {
+        value = {};
+    }
 };
 
 
@@ -37,7 +41,7 @@ public:
 
     // 获取最终输出
     IOConfig getFinalOutput() const;
-
+    void setInput(InputConfig& input);
     void setFlowID(std::string id);
     std::string getFlowID();
     bool setToolInputs(const std::shared_ptr<ToolsBase>& tool);

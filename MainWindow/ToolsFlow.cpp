@@ -75,7 +75,10 @@ void ToolsFlow::setInput(const std::string& targetToolId, const std::string& sou
 {
     inputConfigs_.emplace_back(targetToolId, sourceToolId,inputName, sourceOutputId);
 }
-
+void ToolsFlow::setInput(InputConfig& input)
+{
+    inputConfigs_.push_back(input);
+}
 
 bool ToolsFlow::setToolInputs(const std::shared_ptr<ToolsBase>& tool)
 {
@@ -93,7 +96,30 @@ bool ToolsFlow::setToolInputs(const std::shared_ptr<ToolsBase>& tool)
             if (!sourceTool)
             {
                 qDebug() << "Source tool not found for input:" << QString::fromStdString(inputConfig.sourceToolId);
-                return false;
+
+                // 检查 inputConfig.value 是否包含有效的值
+                if (inputConfig.value.has_value())
+                {
+                    try
+                    {
+                        // 尝试将 std::any 转换为正确的类型
+                        double value = std::any_cast<double>(inputConfig.value);
+                        currentInputs.addData(inputConfig.inputName, value);
+                        qDebug() << "Added input data for:" << QString::fromStdString(inputConfig.inputName);
+                        continue;
+                    }
+                    catch (const std::bad_any_cast& e)
+                    {
+                        // 如果类型转换失败
+                        qDebug() << "Failed to cast value for input:" << QString::fromStdString(inputConfig.inputName)
+                                 << "Error:" << e.what();
+                    }
+                }
+                else
+                {
+                    qDebug() << "Skipping empty input value for:" << QString::fromStdString(inputConfig.inputName);
+                    continue;
+                }
             }
 
             // 查找来源工具的指定输出

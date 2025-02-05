@@ -7,6 +7,14 @@ ImageViewer::ImageViewer(QWidget *parent)
     : QWidget(parent), scaleFactor_(1.0), offset_(0, 0)
 {
     setMouseTracking(true);
+    QWidget *parentWidget = this->parentWidget();
+    if (parentWidget)
+    {
+        parent_width_ = 877;
+        parent_height_ = 730;
+        qDebug() << "Parent size (width, height):" << parent_width_ << parent_height_;
+    }
+
 }
 
 
@@ -82,7 +90,18 @@ QImage MatToQImage(const cv::Mat& mat)
 void ImageViewer::setImage(const cv::Mat &mat)
 {
 
+
     image_ = mat.clone();
+    // 根据窗口大小调整缩放比例
+   /* if (parent_width_ > 0 && parent_height_ > 0)
+    {
+        double widthRatio = static_cast<double>(parent_width_) / image_.cols;
+        double heightRatio = static_cast<double>(parent_height_) / image_.rows;
+        scaleFactor_ = std::min(widthRatio, heightRatio); // 确保图片适应窗口，不超出范围
+    }*/
+
+    // 更新偏移量以居中
+   // centerImage();
     update();
 }
 
@@ -110,7 +129,8 @@ void ImageViewer::mousePressEvent(QMouseEvent *event) {
 }
 
 void ImageViewer::mouseMoveEvent(QMouseEvent *event) {
-    if (event->buttons() & Qt::MiddleButton) {
+    if (event->buttons() & Qt::MiddleButton)
+    {
         // 仅在中键按下时进行拖动操作
         offset_ += event->pos() - lastPos_;
         lastPos_ = event->pos();
@@ -131,10 +151,13 @@ void ImageViewer::wheelEvent(QWheelEvent *event) {
 
     // 缩放前的图像在控件中的坐标
     QPointF beforeScalePoint = (mousePos - offset_) / scaleFactor_;
-    if (event->angleDelta().y() > 0) {
+    if (event->angleDelta().y() > 0 && scaleFactor_<5)
+    {
         scaleFactor_ *= 1.15;
 
-    } else {
+    }
+    else if(event->angleDelta().y() <= 0 && scaleFactor_>0.2)
+    {
         scaleFactor_ /= 1.15;
     }
     QPointF afterScalePoint = beforeScalePoint * scaleFactor_;
@@ -148,11 +171,17 @@ void ImageViewer::centerImage()
     int parentWidth = parent_width_;   // 从 showEvent 中保存的父控件宽度
     int parentHeight = parent_height_; // 从 showEvent 中保存的父控件高度
 
-    if (parentWidth <= 0 || parentHeight <= 0) {
+    if (parentWidth <= 0 || parentHeight <= 0)
+    {
         qDebug() << "Invalid parent widget size.";
         return;
     }
-
+     if (parent_width_ > 0 && parent_height_ > 0)
+    {
+        double widthRatio = static_cast<double>(parent_width_) / image_.cols;
+        double heightRatio = static_cast<double>(parent_height_) / image_.rows;
+        scaleFactor_ = std::min(widthRatio, heightRatio); // 确保图片适应窗口，不超出范围
+    }
     // 计算缩放后的图像宽度和高度
     int imageWidth = image_.cols * scaleFactor_;
     int imageHeight = image_.rows * scaleFactor_;
@@ -173,17 +202,86 @@ cv::Mat ImageViewer::getImage() const
     return image_;
 }
 
-void ImageViewer::showEvent(QShowEvent *event)
+void ImageViewer::resizeEvent(QResizeEvent  *event)
 {
-    QWidget::showEvent(event); // 调用基类的showEvent
+    QWidget::resizeEvent(event); // 调用基类的showEvent
 
     // 获取父控件的尺寸（QFrame）
     QWidget *parentWidget = this->parentWidget();
-    if (parentWidget) {
+    if (parentWidget)
+    {
         parent_width_ = parentWidget->width();
         parent_height_ = parentWidget->height();
         qDebug() << "Parent size (width, height):" << parent_width_ << parent_height_;
-    } else {
+    }
+    else
+    {
         qDebug() << "No parent widget found.";
+    }
+}
+
+
+
+
+
+
+void ImageViewer::updateImageDisplay()
+{
+    if (currentImageIndex_ >= 0 && currentImageIndex_ < images_.size())
+    {
+        const cv::Mat &mat = images_.at(currentImageIndex_);
+        setImage(mat);
+    }
+}
+void ImageViewer::loadImages(const QStringList &filePaths)
+{
+    images_.clear();             // 清空之前的图像
+    currentImageIndex_ = -1;     // 重置索引
+
+
+    for (const QString &filePath : filePaths)
+    {
+        cv::Mat img = cv::imread(filePath.toStdString());
+        if (!img.empty())
+        {
+            images_.push_back(img); // 加载成功则保存
+        }
+        else
+        {
+            qDebug() << "Failed to load image:" << filePath;
+        }
+    }
+
+    if (!images_.empty())
+    {
+        currentImageIndex_ = 0;  // 默认显示第一张图像
+        updateImageDisplay();
+    }
+}
+void ImageViewer::nextImage()
+{
+    if (currentImageIndex_ >= 0 && currentImageIndex_ < images_.size() - 1)
+    {
+        currentImageIndex_++;
+        updateImageDisplay();
+    }
+    else
+    {
+        currentImageIndex_ = 0;
+         updateImageDisplay();
+    }
+}
+
+void ImageViewer::prevImage()
+{
+    if (currentImageIndex_ > 0)
+    {
+        currentImageIndex_--;
+        updateImageDisplay();
+    }
+    else
+    {
+        currentImageIndex_ =images_.size()-1;
+        updateImageDisplay();
     }
 }

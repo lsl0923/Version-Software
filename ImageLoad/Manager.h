@@ -6,21 +6,15 @@
 #include "ToolsBase.h"
 #include "managerbase.h"
 
-
-
-
-
-class Manager :public ManagerBase
-{
+class Manager : public ManagerBase {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID  "com.ManagerBase")
+    Q_PLUGIN_METADATA(IID "com.ManagerBase")
 
 public:
     explicit Manager();
-    virtual  ToolsBase* createTools(const ToolsInfo& pluginName) override;
+    ~Manager() override = default;
 
-    // 获取插件工具
-
+    ToolsBase* createTools(const ToolsInfo& pluginName) override;
 
 };
 

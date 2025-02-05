@@ -22,6 +22,7 @@ add_library(BGR2Gray MODULE
   BGR2Gray.h
   Gray2BGR.h Gray2BGR.cpp
   Manager.h Manager.cpp
+  BinaryThresholdTool.h BinaryThresholdTool.cpp
 
 )
 

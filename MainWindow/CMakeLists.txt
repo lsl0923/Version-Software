@@ -34,6 +34,9 @@ add_library(MainWindow SHARED
   toolitem.h toolitem.cpp
   ToolsFlow.h ToolsFlow.cpp
   IndexDelegate.h IndexDelegate.cpp
+  InputConfigDialog.h InputConfigDialog.cpp InputConfigDialog.ui
+
+
 
 )
 
@@ -58,12 +61,15 @@ target_link_libraries(MainWindow PRIVATE Qt${QT_VERSION_MAJOR}::Widgets ${OpenCV
 
 
 target_link_libraries(MainWindow PRIVATE /home/lsl/Code/Basic/build/Desktop_Qt_5_15_2_GCC_64bit-Debug/libBasic.so)
+target_link_libraries(MainWindow PRIVATE /home/lsl/Code/Camera/build/Desktop_Qt_5_15_2_GCC_64bit-Debug/libCamera.so)
 include_directories(/home/lsl/Code/Basic)
 include_directories(/home/lsl/Code/BGR2Gray)
+include_directories(/home/lsl/Code/Camera)
 
 
 
-
+target_link_libraries(MainWindow PRIVATE /home/lsl/Code/Camera/build/Desktop_Qt_5_15_2_GCC_64bit-Debug/libCamera.so)
+include_directories(/home/lsl/Code/Camera)
 
 
 

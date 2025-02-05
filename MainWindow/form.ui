@@ -49,9 +49,9 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="pushButton_3">
+          <widget class="QPushButton" name="LoadImage">
            <property name="text">
-            <string>PushButton</string>
+            <string>LoadImage</string>
            </property>
           </widget>
          </item>
@@ -62,7 +62,7 @@
          <item>
           <widget class="QPushButton" name="pushButton_6">
            <property name="text">
-            <string>LoadTest</string>
+            <string>Camera</string>
            </property>
           </widget>
          </item>
@@ -74,9 +74,9 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="pushButton_5">
+          <widget class="QPushButton" name="nextImage">
            <property name="text">
-            <string>PushButton</string>
+            <string>nextImage</string>
            </property>
           </widget>
          </item>

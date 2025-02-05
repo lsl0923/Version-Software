@@ -80,6 +80,7 @@ target_link_libraries(TestView PRIVATE Qt${QT_VERSION_MAJOR}::Widgets ${OpenCV_L
 target_include_directories(TestView PRIVATE
     /home/lsl/Code/MainWindow
     /home/lsl/Code/Basic
+    /home/lsl/Code/Camera
 )
 
 target_link_libraries(TestView PRIVATE /home/lsl/Code/Basic/build/Desktop_Qt_5_15_2_GCC_64bit-Debug/libBasic.so)

@@ -5,9 +5,6 @@
 
 
 
-
-
-
 ToolsBase::ToolsBase()
 {
     toolId_ = generateUniqueTimestamp();
@@ -56,4 +53,21 @@ std::string ToolsBase::generateUniqueTimestamp()
     auto now = std::chrono::system_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch());
     return std::to_string(duration.count());
+}
+
+
+bool ToolsBase::isMatchType( const  std::string& type_1,const std::string& type_2)
+{
+    if (type_1 == type_2)
+        return true;
+
+
+    if ((type_1 == "int" && (type_2 == "float" || type_2 == "double")) ||
+        (type_1 == "float" && (type_2 == "int" || type_2 == "double")) ||
+        (type_1 == "double" && (type_2 == "int" || type_2 == "float")))
+    {
+        return true;
+    }
+
+    return false;
 }

@@ -7,7 +7,10 @@
 #include"ToolsFlow.h"
 #include"QListWidget"
 #include"managerbase.h"
-namespace Ui {
+#include"toolitem.h"
+#include"CameraManager.h"
+namespace Ui
+{
 class Form;
 }
 
@@ -20,6 +23,9 @@ public:
     ~Form();
     void loadPlugin(const QString& path);
     void loadPluginC(const QString& path);
+
+public slots:
+    void updateImage(cv::Mat img);
 private slots:
 
     void on_pushButton_clicked();
@@ -33,6 +39,13 @@ private slots:
     void setInputMenu(const std::string& toolId, QMenu* inputMenu);
     void on_ToolsWight_doubleClicked(const QModelIndex &index);
     void onRightClick(const QPoint& pos);
+    void on_LoadImage_clicked();
+
+    void on_nextImage_clicked();
+    void showInputConfigDialog(ToolItem* toolItem);
+
+    void on_pushButton_6_clicked();
+
 protected:
     //void dropEvent(QDropEvent *event) override;
 private:
@@ -43,7 +56,7 @@ private:
 
 
     std::vector<ToolsFlow> toolsFlows_;
-
+    CameraManager * cameraManager_;
 
 
     bool isExistsInToolsWight(const std::string toolName);
