@@ -3,13 +3,15 @@
 #include <QLineEdit>
 #include<QDebug>
 #include"ToolsFlow.h"
-
-InputConfigDialog::InputConfigDialog(QWidget *parent,std::string id)
+#include"ThresholdDialog.h"
+InputConfigDialog::InputConfigDialog(std::string id ,cv::Mat img ,QWidget *parent)
     : QDialog(parent)
     , ui(new Ui::InputConfigDialog)
+    , img_(img)
 {
     ui->setupUi(this);
     toolID_ = id;
+
 }
 
 InputConfigDialog::~InputConfigDialog()
@@ -18,14 +20,11 @@ InputConfigDialog::~InputConfigDialog()
 }
 void InputConfigDialog::addInput( std::shared_ptr<ToolsBase> tool, const std::vector<std::string>& previousTools, ToolsFlow& toolsFlow)
 {
+    tool_ = tool;
     // 显示所有输入到第一个 QListWidget
     for (const std::string& input : tool->getInputsList())
     {
         ui->inputListWidget->addItem(QString::fromStdString(input));
-        if(tool->getInputType(input) == "int" || tool->getInputType(input) =="double"|| tool->getInputType(input) =="float")
-        {
-            addNumericInput((input));
-        }
     }
 
     // 显示所有上游工具到第二个 QListWidget
@@ -236,3 +235,15 @@ void InputConfigDialog::addNumericInput(const std::string& inputName)
         }
     });
 }
+
+void InputConfigDialog::on_inputListWidget_itemDoubleClicked(QListWidgetItem *item)
+{
+    QString input = item->text();
+    if(tool_->getName() == "BinaryThresholdTool" && input != "image")
+    {
+        //addNumericInput((input));
+        ThresholdDialog setThresholdDilog(tool_,img_);
+        setThresholdDilog.exec();
+    }
+}
+

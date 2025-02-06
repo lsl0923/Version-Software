@@ -16,7 +16,7 @@
 #include <QStringList>
 #include"InputConfigDialog.h"
 #include "CameraManager.h"
-
+#include "CameraSettingsDialog.h"
 Form::Form(QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::Form)
@@ -322,18 +322,25 @@ void Form::on_ToolsWight_doubleClicked(const QModelIndex &index)
 
 }
 
-void Form::showInputConfigDialog(ToolItem* toolItem) {
+void Form::showInputConfigDialog(ToolItem* toolItem)
+{
     if (!toolItem) return;
 
     // 获取当前工具的实例
     std::shared_ptr<ToolsBase> tool = toolItem->getToolInstance();
     if (!tool) return;
+    if(tool->getName() == "CameraTool")
+    {
+        CameraSettingsDialog camerasettingsdialog(nullptr,tool);  // 创建对话框
+        return;
+    }
 
-    InputConfigDialog dialog(this,tool->getToolId());
 
+    InputConfigDialog dialog(tool->getToolId(),imageViewer_->getImage());
     // 获取当前工具的输入列表
     const std::vector<std::string>& inputs = tool->getInputsList();
-    if (inputs.empty()) {
+    if (inputs.empty())
+    {
         qDebug() << "No inputs required for this tool.";
         return;
     }

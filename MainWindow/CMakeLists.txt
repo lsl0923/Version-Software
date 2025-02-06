@@ -35,6 +35,8 @@ add_library(MainWindow SHARED
   ToolsFlow.h ToolsFlow.cpp
   IndexDelegate.h IndexDelegate.cpp
   InputConfigDialog.h InputConfigDialog.cpp InputConfigDialog.ui
+  CameraSettingsDialog.h CameraSettingsDialog.cpp CameraSettingsDialog.ui
+  ThresholdDialog.h ThresholdDialog.cpp ThresholdDialog.ui
 
 
 

@@ -84,7 +84,14 @@ bool ToolsFlow::setToolInputs(const std::shared_ptr<ToolsBase>& tool)
 {
 
 //
-    IOConfig currentInputs = initialInput_;
+    IOConfig currentInputs = tool->getInputs();
+    for(auto input :initialInput_.data)
+    {
+        if(!currentInputs.getDataValue(input.name).has_value())
+        {
+            currentInputs.addData(input.name,input.value);
+        }
+    }
 
     for (const auto& inputConfig : inputConfigs_)
     {

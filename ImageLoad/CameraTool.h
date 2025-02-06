@@ -17,7 +17,6 @@ public:
     std::string getInputType(const std::string& inputName) override;
     std::string getOutputType(const std::string& outputName) override;
     void setCameraFromManager(int cameraIndex);
-
 protected:
     int runSub() override;
     void setName() override;

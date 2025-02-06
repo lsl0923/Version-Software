@@ -13,7 +13,7 @@ void BinaryThresholdTool::setName()
 
 std::vector<std::string> BinaryThresholdTool::getInputsList()
 {
-    return {"image", "ThresholdValue"};
+    return {"image", "ThresholdValue","ThresholdMode"};
 }
 
 std::vector<std::string> BinaryThresholdTool::getOutputsList()
@@ -26,6 +26,7 @@ bool BinaryThresholdTool::validateInputs()
     const std::vector<IOData>& data = inputs_.data;
     bool hasImage = false;
     bool hasThreshold = false;
+    bool hasThresholdMode = false;
 
     for (const auto& input : data)
     {
@@ -50,12 +51,20 @@ bool BinaryThresholdTool::validateInputs()
                 return false;
             }
         }
+        if(input.name == "ThresholdMode" && input.value.type() == typeid(int))
+        {
+            hasThresholdMode = true;
+        }
     }
 
     if (!hasThreshold)
     {
-        inputs_.addData("ThresholdValue", 127.0);
+        inputs_.addData("ThresholdValue", 128.0);
         hasThreshold = true;
+    }
+    if(!hasThresholdMode)
+    {
+        inputs_.addData("ThresholdMode", static_cast<int>(cv::THRESH_BINARY));
     }
 
     // 打印调试信息
@@ -81,6 +90,7 @@ int BinaryThresholdTool::runSub()
     // 获取输入图像和阈值
     auto image = std::any_cast<cv::Mat>(inputs_.getDataValue("image"));
     auto thresholdValue = std::any_cast<double>(inputs_.getDataValue("ThresholdValue"));
+    auto thresholdmode = std::any_cast<int>(inputs_.getDataValue("ThresholdMode"));
 
     if (image.empty())
     {
@@ -89,7 +99,7 @@ int BinaryThresholdTool::runSub()
     }
 
     cv::Mat outputImage;
-    cv::threshold(image, outputImage, thresholdValue, 255, cv::THRESH_BINARY);
+    cv::threshold(image, outputImage, thresholdValue, 255, thresholdmode);
 
     // 设置输出
     outputs_.addData("image", outputImage);
@@ -109,6 +119,10 @@ std::string BinaryThresholdTool:: getInputType(const std::string& inputName)
     else if(inputName == "ThresholdValue")
     {
         return "double";
+    }
+    else if(inputName == "ThresholdMode")
+    {
+        return "int";
     }
     return "";
 }

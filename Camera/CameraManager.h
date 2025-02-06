@@ -16,8 +16,8 @@ protected:
 public:
     CameraManager() = default;
     virtual ~CameraManager() = default;
-
-    virtual void DetectConnectedCameras() = 0; // 纯虚函数，由子类实现
+    void DetectConnectedCameras();
+    virtual void DetectConnectedCamerasSub() = 0; // 纯虚函数，由子类实现
     virtual void ConnectAll();
     virtual void DisconnectAll();
     virtual void SnapAll();

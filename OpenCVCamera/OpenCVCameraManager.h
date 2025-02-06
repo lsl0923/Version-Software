@@ -16,7 +16,7 @@ public:
     OpenCVCameraManager() = default;
     ~OpenCVCameraManager() override = default;
 
-    void DetectConnectedCameras() override;
+    void DetectConnectedCamerasSub() override;
 };
 
 #endif // OPENCV_CAMERA_MANAGER_H

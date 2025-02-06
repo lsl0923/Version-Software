@@ -14,7 +14,8 @@ enum class CameraStatus
     Snap
 };
 
-enum class CameraType {
+enum class CameraType
+{
     OpenCV,
     Other
 };
@@ -66,6 +67,7 @@ public :
     CameraStatus GetStatus(); //获取相机当前状态
     void SetCameraSNum(QString strID); // 相机厂商定义的SN
     CameraID GetCameraID();//相机的唯一ID号
+    void SetCameraID(CameraID id);//相机的唯一ID号
     void SetStatus(CameraStatus status);//相机当前状态 连续、单帧或者空闲
     void ConnectCamera();//连接相机
     void DisConnectCamera(); //断开连接

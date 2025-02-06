@@ -20,7 +20,7 @@ public:
     void loadImages(const QStringList &filePaths); // 加载多张图片
     void nextImage();                              // 显示下一张图片
     void prevImage();                              // 显示上一张图片
-
+    void normalize();
 protected:
     void paintEvent(QPaintEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;

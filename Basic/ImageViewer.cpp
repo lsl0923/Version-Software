@@ -151,12 +151,12 @@ void ImageViewer::wheelEvent(QWheelEvent *event) {
 
     // 缩放前的图像在控件中的坐标
     QPointF beforeScalePoint = (mousePos - offset_) / scaleFactor_;
-    if (event->angleDelta().y() > 0 && scaleFactor_<5)
+    if (event->angleDelta().y() > 0 && scaleFactor_<10)
     {
         scaleFactor_ *= 1.15;
 
     }
-    else if(event->angleDelta().y() <= 0 && scaleFactor_>0.2)
+    else if(event->angleDelta().y() <= 0 && scaleFactor_>0.1)
     {
         scaleFactor_ /= 1.15;
     }
@@ -176,12 +176,7 @@ void ImageViewer::centerImage()
         qDebug() << "Invalid parent widget size.";
         return;
     }
-     if (parent_width_ > 0 && parent_height_ > 0)
-    {
-        double widthRatio = static_cast<double>(parent_width_) / image_.cols;
-        double heightRatio = static_cast<double>(parent_height_) / image_.rows;
-        scaleFactor_ = std::min(widthRatio, heightRatio); // 确保图片适应窗口，不超出范围
-    }
+    normalize();
     // 计算缩放后的图像宽度和高度
     int imageWidth = image_.cols * scaleFactor_;
     int imageHeight = image_.rows * scaleFactor_;
@@ -231,6 +226,9 @@ void ImageViewer::updateImageDisplay()
     {
         const cv::Mat &mat = images_.at(currentImageIndex_);
         setImage(mat);
+
+        centerImage();
+
     }
 }
 void ImageViewer::loadImages(const QStringList &filePaths)
@@ -283,5 +281,14 @@ void ImageViewer::prevImage()
     {
         currentImageIndex_ =images_.size()-1;
         updateImageDisplay();
+    }
+}
+void ImageViewer::normalize()
+{
+    if (parent_width_ > 0 && parent_height_ > 0)
+    {
+        double widthRatio = static_cast<double>(parent_width_) / image_.cols;
+        double heightRatio = static_cast<double>(parent_height_) / image_.rows;
+        scaleFactor_ = std::min(widthRatio, heightRatio); // 确保图片适应窗口，不超出范围
     }
 }

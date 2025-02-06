@@ -16,7 +16,10 @@ CameraID CameraBase::GetCameraID()
 {
     return cameraID_;
 }
-
+void CameraBase::SetCameraID(CameraID id)
+{
+    cameraID_ = id;
+}
 void CameraBase::SetStatus(CameraStatus status)
 {
     status_ = status;
