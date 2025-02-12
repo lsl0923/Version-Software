@@ -9,7 +9,7 @@
 class CameraTool : public ToolsBase
 {
 public:
-    explicit CameraTool(const QString path);
+    explicit CameraTool(const CameraType type);
     ~CameraTool() override;
 
     std::vector<std::string> getInputsList() override;
@@ -17,6 +17,7 @@ public:
     std::string getInputType(const std::string& inputName) override;
     std::string getOutputType(const std::string& outputName) override;
     void setCameraFromManager(int cameraIndex);
+    void setCameraFromManager(CameraID id);
 protected:
     int runSub() override;
     void setName() override;

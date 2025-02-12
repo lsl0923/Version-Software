@@ -4,7 +4,7 @@
 #include "Camera_global.h"
 #include<opencv2/opencv.hpp>
 #include<QObject>
-
+#define CameraBase_iid "com.CameraBase/1.0"
 
 enum class CameraStatus
 {
@@ -12,6 +12,7 @@ enum class CameraStatus
     Connected,
     Grabbing,
     Snap
+    //TODO
 };
 
 enum class CameraType
@@ -20,7 +21,8 @@ enum class CameraType
     Other
 };
 
-struct CameraID {
+struct CameraID
+{
     std::string id;  // 相机的唯一标识符（如序列号）
     CameraType type; // 相机类型
 
@@ -49,6 +51,7 @@ protected:
     virtual void StopGrabSub() = 0;
     virtual void SnapSub() = 0;
     virtual bool IsConnectedSub() = 0;
+    virtual std::vector<std::shared_ptr<CameraBase>> DetectConnectedCamerasSub() = 0;
     virtual  void SetExposureSub(double nExposure)=0;
     virtual void SetExternTrigerSub(bool bExternTriger) = 0;
     virtual void GetExposureRangeSub(double& dbMin, double& dbMax) = 0;
@@ -73,7 +76,7 @@ public :
     void DisConnectCamera(); //断开连接
     bool IsConnected();  //是否连接
     void SetExposure(double nExposure); //设置曝光
-
+    std::vector<std::shared_ptr<CameraBase>> DetectConnectedCameras();
     void GetExposureRange(double& dbMin, double& dbMax); //获取曝光范围
     double GetExposure(); //获取曝光
     void Snap() ;//单帧采集一张图片

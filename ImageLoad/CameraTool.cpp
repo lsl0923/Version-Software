@@ -3,11 +3,17 @@
 #include <QPluginLoader>
 #include <memory>  // 引入智能指针的头文件
 #include <opencv2/opencv.hpp>
-CameraTool::CameraTool(const QString path)
+CameraTool::CameraTool(const CameraType type)
 {
+    if(type == CameraType::OpenCV)
+    {
+        cameraManager_ = std::make_shared<CameraManager>(type);
+    }
+    /*
     QPluginLoader loader(path);
     QObject *plugin = loader.instance();
-    if (!plugin) {
+    if (!plugin)
+    {
         qDebug() << "Failed to load plugin:" << loader.errorString();
         return;  // 插件加载失败时，返回
     }
@@ -24,6 +30,7 @@ CameraTool::CameraTool(const QString path)
 
     // 加载插件并检测连接的相机
     cameraManager_->DetectConnectedCameras();
+*/
     setName();  // 设置工具的名称
 }
 
@@ -83,9 +90,23 @@ void CameraTool::setCameraFromManager(int cameraIndex)
         {
             qDebug() << "Invalid camera index.";
         }
-    } else {
+    } else
+    {
         qDebug() << "CameraManager is not initialized.";
     }
+}
+void CameraTool::setCameraFromManager(CameraID cameraID)
+{
+    auto cameras = cameraManager_->GetCameraList();
+    for (auto& camera : cameras)
+    {
+        if(camera->GetCameraID() == cameraID)
+        {
+            camera_ = camera;
+            return;
+        }
+    }
+
 }
 int CameraTool::runSub()
 {
@@ -125,11 +146,12 @@ int CameraTool::runSub()
     qDebug() << "Camera: " << QString::fromStdString(selectedCamera)
              << ", Exposure: " << exposure
              << ", Snap Mode: " << snapMode;
-    std::string remainingStr = selectedCamera.substr(3);
-    int remainingAsInt = std::stoi(remainingStr);
-    setCameraFromManager(remainingAsInt);
+    CameraID id;
+    id.id = selectedCamera;
+    id.type = CameraType::OpenCV;
+    setCameraFromManager(id);
     camera_->SetExposure(exposure);
-
+    camera_->ConnectCamera();
     if (snapMode)
     {
         camera_->Snap();
@@ -154,7 +176,7 @@ int CameraTool::runSub()
     }
     camera_->DisConnectCamera();
 
-    return 0;
+    return 1;
 }
 
 

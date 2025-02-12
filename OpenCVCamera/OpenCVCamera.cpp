@@ -1,9 +1,9 @@
 #include "OpenCVCamera.h"
 #include <QThread>
-
+#include"QDebug"
 
 OpenCVCamera::OpenCVCamera(int cameraIndex)
-    : cameraIndex_(cameraIndex), isConnected_(false), exposure_(0) {}
+    : cameraIndex_(cameraIndex), isConnected_(false), exposure_(10000) {}
 
 void OpenCVCamera::ConnectCameraSub()
 {
@@ -28,15 +28,14 @@ void OpenCVCamera::StartGrabSub()
 
 void OpenCVCamera::StopGrabSub()
 {
-    // OpenCV VideoCapture 没有显式停止抓取的方法
     DisConnectCamera();
 }
 
 void OpenCVCamera::SnapSub()
 {
-    ConnectCameraSub();
     if (cap_.isOpened())
     {
+        SetExposure(exposure_);
         cap_ >> imgCur_;
         if (!imgCur_.empty())
         {
@@ -53,7 +52,8 @@ bool OpenCVCamera::IsConnectedSub()
 void OpenCVCamera::SetExposureSub(double nExposure)
 {
     exposure_ = nExposure;
-    if (cap_.isOpened()) {
+    if (cap_.isOpened())
+    {
         cap_.set(cv::CAP_PROP_EXPOSURE, exposure_);
     }
 }
@@ -74,4 +74,25 @@ double OpenCVCamera::GetExposureSub()
     return exposure_;
 }
 
+std::vector<std::shared_ptr<CameraBase>> OpenCVCamera::DetectConnectedCamerasSub()
+{
+    std::vector<std::shared_ptr<CameraBase>> cameras;
+    for (int i = 0; i < 1; ++i)
+    {
+        cv::VideoCapture cap;
+        cap.open(i);
 
+        if (!cap.isOpened()) // 如果无法打开摄像头，跳过
+        {
+            continue;
+        }
+
+        qDebug() << "摄像头 " << i << " 成功打开";
+        auto camera = std::make_shared<OpenCVCamera>(i);
+        CameraID id("usb"+ std::to_string(i),CameraType::OpenCV);
+        camera->SetCameraID(id);
+        cameras.push_back(camera);
+        cap.release();
+    }
+    return cameras;
+}

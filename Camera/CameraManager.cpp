@@ -1,6 +1,25 @@
 #include "CameraManager.h"
 #include <algorithm>
+#include <QPluginLoader>
+#include"CameraBase.h"
+CameraManager::CameraManager(CameraType type)
+{
+    if(type == CameraType::OpenCV)
+    {
+        QString path = "/home/lsl/Code/OpenCVCamera/build/Desktop_Qt_5_15_2_GCC_64bit-Debug/libOpenCVCamera.so";
+        QPluginLoader loader(path);
+        QObject *plugin = loader.instance();
+        if (!plugin)
+        {
+            qDebug() << "Failed to load plugin:" << loader.errorString();
+            return;  // 插件加载失败时，返回
+        }
+        // 尝试转换插件为 CameraManager 类型
+        CameraBase* cur = qobject_cast<CameraBase*>(plugin);
+        cameras_ = cur->DetectConnectedCameras();
+    }
 
+}
 
 void CameraManager::ConnectAll()
 {
@@ -49,7 +68,9 @@ std::vector<std::shared_ptr<CameraBase>> CameraManager::GetCameraList() const
 {
     return cameras_;
 }
+/*
 void  CameraManager::DetectConnectedCameras()
 {
     DetectConnectedCamerasSub();
 }
+*/

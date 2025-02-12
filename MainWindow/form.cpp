@@ -54,6 +54,7 @@ Form::Form(QWidget *parent)
     loadPlugin(pluginPath);
     pluginPath = "/home/lsl/Code/ImageLoad/build/Desktop_Qt_5_15_2_GCC_64bit-Debug/libImageLoad.so";
     loadPlugin(pluginPath);
+    cameraManager_ = NULL;
 }
 
 Form::~Form()
@@ -332,6 +333,7 @@ void Form::showInputConfigDialog(ToolItem* toolItem)
     if(tool->getName() == "CameraTool")
     {
         CameraSettingsDialog camerasettingsdialog(nullptr,tool);  // 创建对话框
+        camerasettingsdialog.exec();
         return;
     }
 
@@ -541,36 +543,34 @@ void Form::on_nextImage_clicked()
 
 void Form::on_pushButton_6_clicked()
 {
-    QPluginLoader loader("/home/lsl/Code/OpenCVCamera/build/Desktop_Qt_5_15_2_GCC_64bit-Debug/libOpenCVCamera.so"); // 插件文件路径
-    QObject *plugin = loader.instance();
-    if (!plugin)
-    {
-        qDebug() << "Failed to load plugin:" << loader.errorString();
-
-    }
-
-    cameraManager_ = qobject_cast<CameraManager*>(plugin);
     if (!cameraManager_)
     {
-        qDebug() << "Failed to cast plugin to CameraManager";
+        cameraManager_ = std::make_shared<CameraManager>(CameraType::OpenCV);
     }
 
-    cameraManager_->DetectConnectedCameras();
-    std::shared_ptr<CameraBase> camera = cameraManager_->GetCamera(0);
-
-    camera->StartGrab();
-    bool connected = connect(camera.get(), &CameraBase::newImageReceived, this, &Form::updateImage, Qt::DirectConnection );
-    if (!connected)
+    if (cameraManager_ && cameraManager_->GetCameraList().size() > 0)
     {
-        qDebug() << "Failed to connect signal and slot!";
+        std::shared_ptr<CameraBase> camera = cameraManager_->GetCameraList()[0];
+
+        if (camera->IsConnected())  // 如果相机已连接，先断开
+        {
+            camera->DisConnectCamera();
+            disconnect(camera.get(), &CameraBase::newImageReceived, this, &Form::updateImage);
+            return;
+        }
+        camera->StartGrab();
+
+        bool connected = connect(camera.get(), &CameraBase::newImageReceived, this, &Form::updateImage, Qt::DirectConnection);
     }
     else
     {
-        qDebug() << "Signal and slot connected!";
+        qDebug() << "No cameras found!";
     }
 }
+
 void Form::updateImage(cv::Mat img)
 {
     imageViewer_->setImage(img);
     update();
 }
+

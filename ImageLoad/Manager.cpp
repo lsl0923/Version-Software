@@ -14,7 +14,7 @@ ToolsBase* Manager::createTools(const ToolsInfo& pluginName)
 
     if (pluginName.name == "CameraTool")
     {
-        return new CameraTool(QString("/home/lsl/Code/OpenCVCamera/build/Desktop_Qt_5_15_2_GCC_64bit-Debug/libOpenCVCamera.so"));
+        return new CameraTool(CameraType::OpenCV);
     }
 
     qDebug() << "Unknown tool requested.";

@@ -1,12 +1,13 @@
 #include "OpenCVCameraManager.h"
 #include"OpenCVCamera.h"
 #include<QDebug>
-void OpenCVCameraManager::DetectConnectedCamerasSub()
+
+/*void OpenCVCameraManager::DetectConnectedCamerasSub()
 {
 
     cameras_.clear();
 
-    for (int i = 0; i < 1; ++i)
+    for (int i = 0; i < 3; ++i)
     {
         cv::VideoCapture cap;
         cap.open(i);
@@ -24,4 +25,4 @@ void OpenCVCameraManager::DetectConnectedCamerasSub()
         cap.release();
     }
 }
-
+*/

@@ -7,6 +7,8 @@
 class CameraGrabThread;
 class OpenCVCamera : public CameraBase
 {
+    Q_OBJECT
+    Q_PLUGIN_METADATA(IID  "com.CameraManager")
 private:
     cv::VideoCapture cap_;
     int cameraIndex_;
@@ -25,6 +27,7 @@ protected:
     void SetExternTrigerSub(bool bExternTriger) override;
     void GetExposureRangeSub(double& dbMin, double& dbMax) override;
     double GetExposureSub() override;
+    std::vector<std::shared_ptr<CameraBase>> DetectConnectedCamerasSub() override;
 
 public:
     OpenCVCamera(int cameraIndex = 0);
@@ -44,7 +47,7 @@ protected:
         {
             camera_->Snap();
             emit frameReady(camera_->GetImage());
-            msleep(5);  // 控制抓取频率
+            msleep(10);  // 控制抓取频率
         }
     }
 signals:

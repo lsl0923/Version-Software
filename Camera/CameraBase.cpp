@@ -105,5 +105,8 @@ void CameraBase::WaitSnap()
 {
     // 实现等待快照逻辑
 }
-
+std::vector<std::shared_ptr<CameraBase>> CameraBase::DetectConnectedCameras()
+{
+    return DetectConnectedCamerasSub();
+}
 

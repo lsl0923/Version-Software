@@ -56,7 +56,7 @@ private:
 
 
     std::vector<ToolsFlow> toolsFlows_;
-    CameraManager * cameraManager_;
+    std::shared_ptr<CameraManager>  cameraManager_;
 
 
     bool isExistsInToolsWight(const std::string toolName);
