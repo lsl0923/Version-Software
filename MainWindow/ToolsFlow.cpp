@@ -87,6 +87,10 @@ bool ToolsFlow::setToolInputs(const std::shared_ptr<ToolsBase>& tool)
     IOConfig currentInputs = tool->getInputs();
     for(auto input :initialInput_.data)
     {
+        if(input.name == "image")
+        {
+            currentInputs.addData(input.name,input.value);
+        }
         if(!currentInputs.getDataValue(input.name).has_value())
         {
             currentInputs.addData(input.name,input.value);

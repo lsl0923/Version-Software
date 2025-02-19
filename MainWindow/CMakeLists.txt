@@ -43,7 +43,6 @@ add_library(MainWindow SHARED
 )
 
 target_link_libraries(MainWindow PRIVATE Qt${QT_VERSION_MAJOR}::Core)
-
 target_compile_definitions(MainWindow PRIVATE MAINWINDOW_LIBRARY)
 
 
@@ -62,18 +61,21 @@ target_link_libraries(MainWindow PRIVATE Qt${QT_VERSION_MAJOR}::Core)
 target_link_libraries(MainWindow PRIVATE Qt${QT_VERSION_MAJOR}::Widgets ${OpenCV_LIBS})
 
 
-target_link_libraries(MainWindow PRIVATE /home/lsl/Code/Basic/build/Desktop_Qt_5_15_2_GCC_64bit-Debug/libBasic.so)
-target_link_libraries(MainWindow PRIVATE /home/lsl/Code/Camera/build/Desktop_Qt_5_15_2_GCC_64bit-Debug/libCamera.so)
-include_directories(/home/lsl/Code/Basic)
-include_directories(/home/lsl/Code/BGR2Gray)
-include_directories(/home/lsl/Code/Camera)
+# 添加头文件目录（使用相对路径）
+target_include_directories(MainWindow PRIVATE
+    ../Basic
+    ../BGR2Gray
+    ../Camera
+)
 
+# 添加库搜索路径（使用相对路径）
+target_link_directories(MainWindow PRIVATE
+    ../Basic/build/Desktop_Qt_5_15_2_GCC_64bit-Debug
+    ../Camera/build/Desktop_Qt_5_15_2_GCC_64bit-Debug
+)
 
-
-target_link_libraries(MainWindow PRIVATE /home/lsl/Code/Camera/build/Desktop_Qt_5_15_2_GCC_64bit-Debug/libCamera.so)
-include_directories(/home/lsl/Code/Camera)
-
-
+# 只写库名，不要写完整路径
+target_link_libraries(MainWindow PRIVATE Basic Camera)
 
 
 

@@ -1,7 +1,6 @@
 #include "OpenCVCamera.h"
 #include <QThread>
 #include"QDebug"
-
 OpenCVCamera::OpenCVCamera(int cameraIndex)
     : cameraIndex_(cameraIndex), isConnected_(false), exposure_(10000) {}
 
@@ -13,17 +12,24 @@ void OpenCVCamera::ConnectCameraSub()
 
 void OpenCVCamera::DisConnectCameraSub()
 {
+    isConnected_ = false;
     if (cap_.isOpened())
     {
+        if (!grabThread_ && grabThread_->isRunning())
+        {
+            grabThread_->requestInterruption();
+            grabThread_->wait();  // 等待线程完全退出
+        }
         cap_.release();
+        QThread::msleep(200);
     }
-    isConnected_ = false;
+
 }
 
 void OpenCVCamera::StartGrabSub()
 {
-    CameraGrabThread* grabThread = new CameraGrabThread(this);
-    grabThread->start();
+    grabThread_ = new CameraGrabThread(this);
+    grabThread_->start();
 }
 
 void OpenCVCamera::StopGrabSub()

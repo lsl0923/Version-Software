@@ -78,14 +78,21 @@ target_link_libraries(TestView PRIVATE Qt${QT_VERSION_MAJOR}::Widgets ${OpenCV_L
 
 
 target_include_directories(TestView PRIVATE
-    /home/lsl/Code/MainWindow
-    /home/lsl/Code/Basic
-    /home/lsl/Code/Camera
+    ../MainWindow
+    ../Basic
+    ../Camera
 )
 
-target_link_libraries(TestView PRIVATE /home/lsl/Code/Basic/build/Desktop_Qt_5_15_2_GCC_64bit-Debug/libBasic.so)
 
-target_link_libraries(TestView PRIVATE /home/lsl/Code/MainWindow/build/Desktop_Qt_5_15_2_GCC_64bit-Debug/libMainWindow.so)
+
+target_link_directories(TestView PRIVATE
+    ../Basic/build/Desktop_Qt_5_15_2_GCC_64bit-Debug
+    ../MainWindow/build/Desktop_Qt_5_15_2_GCC_64bit-Debug
+)
+# 只使用库名（不加 lib 前缀和 .so 后缀）
+target_link_libraries(TestView PRIVATE Basic MainWindow)
+
+
 
 
 

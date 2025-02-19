@@ -9,6 +9,7 @@ ThresholdDialog::ThresholdDialog(std::shared_ptr<ToolsBase> tool,cv::Mat img, QW
     viewer_ = new ImageViewer(ui->frame);
     ui->verticalLayout_3->addWidget(viewer_);
     viewer_->setImage(img);
+    viewer_->centerImage();
     img_ = img.clone();
 }
 
@@ -41,6 +42,7 @@ void ThresholdDialog::updateThreshold()
     cv::threshold(inputImage, outputImage, thresholdValue_, 255, cvMode);
     // 显示预览
     viewer_->setImage(outputImage);
+
 }
 
 void ThresholdDialog::on_threshold_textChanged(const QString &arg1)

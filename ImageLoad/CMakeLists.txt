@@ -20,12 +20,24 @@ add_library(ImageLoad SHARED
   CameraTool.h
   Manager.h Manager.cpp
 )
+target_compile_definitions(ImageLoad PRIVATE IMAGELOAD_LIBRARY)
+
 target_link_libraries(ImageLoad PRIVATE Qt${QT_VERSION_MAJOR}::Core)
-target_link_libraries(ImageLoad PRIVATE /home/lsl/Code/Basic/build/Desktop_Qt_5_15_2_GCC_64bit-Debug/libBasic.so)
-include_directories(/home/lsl/Code/Basic)
-# 链接OpenCV库
 target_link_libraries(ImageLoad PRIVATE Qt${QT_VERSION_MAJOR}::Widgets ${OpenCV_LIBS})
 
-target_compile_definitions(ImageLoad PRIVATE IMAGELOAD_LIBRARY)
-target_link_libraries(ImageLoad PRIVATE /home/lsl/Code/Camera/build/Desktop_Qt_5_15_2_GCC_64bit-Debug/libCamera.so)
-include_directories(/home/lsl/Code/Camera)
+
+
+# 添加头文件目录（相对路径）
+target_include_directories(ImageLoad PRIVATE
+    ../Basic
+    ../Camera
+)
+
+# 添加库搜索路径（相对路径）
+target_link_directories(ImageLoad PRIVATE
+    ../Basic/build/Desktop_Qt_5_15_2_GCC_64bit-Debug
+    ../Camera/build/Desktop_Qt_5_15_2_GCC_64bit-Debug
+)
+
+# 只写库名，不写完整路径
+target_link_libraries(ImageLoad PRIVATE Basic Camera)

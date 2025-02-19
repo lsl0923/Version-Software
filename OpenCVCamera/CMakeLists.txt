@@ -26,5 +26,11 @@ target_compile_definitions(OpenCVCamera PRIVATE CAMERA_LIBRARY)
 target_link_libraries(OpenCVCamera PRIVATE Qt${QT_VERSION_MAJOR}::Widgets ${OpenCV_LIBS})
 
 target_compile_definitions(OpenCVCamera PRIVATE OPENCVCAMERA_LIBRARY)
-target_link_libraries(OpenCVCamera PRIVATE /home/lsl/Code/Camera/build/Desktop_Qt_5_15_2_GCC_64bit-Debug/libCamera.so)
-include_directories(/home/lsl/Code/Camera)
+
+
+
+include_directories(../Camera)
+# 添加库搜索路径
+target_link_directories(OpenCVCamera PRIVATE ../Camera/build/Desktop_Qt_5_15_2_GCC_64bit-Debug)
+# 链接库时只使用库名（不加 lib 前缀，不加 .so 后缀）
+target_link_libraries(OpenCVCamera PRIVATE Camera)

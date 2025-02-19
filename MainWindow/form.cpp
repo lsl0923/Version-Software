@@ -5,6 +5,10 @@
 #include<QTreeView>
 #include<QStandardItemModel>
 #include <QMenu>
+#include <QFileDialog>
+#include <QStringList>
+
+
 #include "ImageViewer.h"
 #include "ui_form.h"
 #include "ToolsBase.h"
@@ -12,8 +16,6 @@
 #include "managerbase.h"
 #include "toolitem.h"
 #include"IndexDelegate.h"
-#include <QFileDialog>
-#include <QStringList>
 #include"InputConfigDialog.h"
 #include "CameraManager.h"
 #include "CameraSettingsDialog.h"
@@ -554,6 +556,7 @@ void Form::on_pushButton_6_clicked()
 
         if (camera->IsConnected())  // 如果相机已连接，先断开
         {
+           // camera->StopGrab();
             camera->DisConnectCamera();
             disconnect(camera.get(), &CameraBase::newImageReceived, this, &Form::updateImage);
             return;

@@ -31,8 +31,19 @@ target_link_libraries(BGR2Gray PRIVATE Qt${QT_VERSION_MAJOR}::Core)
 target_compile_definitions(BGR2Gray PRIVATE BGR2GRAY_LIBRARY)
 
 
-target_link_libraries(BGR2Gray PRIVATE /home/lsl/Code/Basic/build/Desktop_Qt_5_15_2_GCC_64bit-Debug/libBasic.so)
-include_directories(/home/lsl/Code/Basic)
+# 添加头文件目录（使用相对路径）
+target_include_directories(BGR2Gray PRIVATE
+    ../Basic
+)
+
+# 添加库搜索路径（使用相对路径）
+target_link_directories(BGR2Gray PRIVATE
+    ../Basic/build/Desktop_Qt_5_15_2_GCC_64bit-Debug
+)
+
+# 只写库名，不写完整路径
+target_link_libraries(BGR2Gray PRIVATE Basic)
+
 # 链接OpenCV库
 target_link_libraries(BGR2Gray PRIVATE Qt${QT_VERSION_MAJOR}::Widgets ${OpenCV_LIBS})
 
