@@ -7,6 +7,7 @@
 #include <QMenu>
 #include <QFileDialog>
 #include <QStringList>
+#include<QMenuBar>
 
 
 #include "ImageViewer.h"
@@ -19,6 +20,7 @@
 #include"InputConfigDialog.h"
 #include "CameraManager.h"
 #include "CameraSettingsDialog.h"
+
 Form::Form(QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::Form)
@@ -57,6 +59,8 @@ Form::Form(QWidget *parent)
     pluginPath = "/home/lsl/Code/ImageLoad/build/Desktop_Qt_5_15_2_GCC_64bit-Debug/libImageLoad.so";
     loadPlugin(pluginPath);
     cameraManager_ = NULL;
+    QMenuBar *menubar = new QMenuBar();
+    //把菜单栏放入窗口中
 }
 
 Form::~Form()
@@ -539,10 +543,48 @@ void Form::on_nextImage_clicked()
     imageViewer_->nextImage();
 }
 
+void Form::onActionOpenUSB()
+{
+    if (!cameraManager_)
+    {
+        cameraManager_ = std::make_shared<CameraManager>(CameraType::OpenCV);
+    }
 
+    if (cameraManager_ && cameraManager_->GetCameraList().size() > 0)
+    {
+        std::shared_ptr<CameraBase> camera = cameraManager_->GetCameraList()[0];
 
+        if (camera->IsConnected())  // 如果相机已连接，先断开
+        {
+            // camera->StopGrab();
+            camera->DisConnectCamera();
+            disconnect(camera.get(), &CameraBase::newImageReceived, this, &Form::updateImage);
+            return;
+        }
+        camera->StartGrab();
 
+        bool connected = connect(camera.get(), &CameraBase::newImageReceived, this, &Form::updateImage, Qt::DirectConnection);
+    }
+    else
+    {
+        qDebug() << "No cameras found!";
+    }
+}
+void Form::updateImage(cv::Mat img)
+{
+    imageViewer_->setImage(img);
+    update();
+}
+void Form::onActionOpenImg()
+{
+    QStringList filePaths = QFileDialog::getOpenFileNames(this, "Select Images", "", "Images (*.png *.jpg *.bmp)");
+    if (!filePaths.isEmpty())
+    {
+        imageViewer_->loadImages(filePaths);
+    }
+}
 
+/*
 void Form::on_pushButton_6_clicked()
 {
     if (!cameraManager_)
@@ -570,10 +612,6 @@ void Form::on_pushButton_6_clicked()
         qDebug() << "No cameras found!";
     }
 }
+*/
 
-void Form::updateImage(cv::Mat img)
-{
-    imageViewer_->setImage(img);
-    update();
-}
 

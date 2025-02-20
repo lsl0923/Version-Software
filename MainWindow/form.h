@@ -2,6 +2,7 @@
 #define FORM_H
 #include<map>
 #include <QWidget>
+#include<QMainWindow>
 #include"ImageViewer.h"
 
 #include"ToolsFlow.h"
@@ -23,6 +24,8 @@ public:
     ~Form();
     void loadPlugin(const QString& path);
     void loadPluginC(const QString& path);
+    void onActionOpenUSB();
+    void onActionOpenImg();
 
 public slots:
     void updateImage(cv::Mat img);
@@ -44,7 +47,7 @@ private slots:
     void on_nextImage_clicked();
     void showInputConfigDialog(ToolItem* toolItem);
 
-    void on_pushButton_6_clicked();
+   // void on_pushButton_6_clicked();
 
 protected:
     //void dropEvent(QDropEvent *event) override;

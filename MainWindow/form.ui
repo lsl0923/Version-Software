@@ -51,7 +51,7 @@
          <item>
           <widget class="QPushButton" name="LoadImage">
            <property name="text">
-            <string>LoadImage</string>
+            <string>LoadImage()</string>
            </property>
           </widget>
          </item>
@@ -62,7 +62,7 @@
          <item>
           <widget class="QPushButton" name="pushButton_6">
            <property name="text">
-            <string>Camera</string>
+            <string>Camera()</string>
            </property>
           </widget>
          </item>
