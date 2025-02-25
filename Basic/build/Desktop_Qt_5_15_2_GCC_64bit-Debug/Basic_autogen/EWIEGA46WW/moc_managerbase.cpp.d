@@ -1,7 +1,7 @@
-/home/lsl/Code/Basic/build/Desktop_Qt_5_15_2_GCC_64bit-Debug/Basic_autogen/EWIEGA46WW/moc_managerbase.cpp: /home/lsl/Code/Basic/managerbase.h \
-  /home/lsl/Code/Basic/build/Desktop_Qt_5_15_2_GCC_64bit-Debug/Basic_autogen/moc_predefs.h \
-  /home/lsl/Code/Basic/Basic_global.h \
-  /home/lsl/Code/Basic/ToolsBase.h \
+/home/lsl/VisionSoftWare/Version-Software/Basic/build/Desktop_Qt_5_15_2_GCC_64bit-Debug/Basic_autogen/EWIEGA46WW/moc_managerbase.cpp: /home/lsl/VisionSoftWare/Version-Software/Basic/managerbase.h \
+  /home/lsl/VisionSoftWare/Version-Software/Basic/build/Desktop_Qt_5_15_2_GCC_64bit-Debug/Basic_autogen/moc_predefs.h \
+  /home/lsl/VisionSoftWare/Version-Software/Basic/Basic_global.h \
+  /home/lsl/VisionSoftWare/Version-Software/Basic/ToolsBase.h \
   /opt/Qt/5.15.2/gcc_64/include/QtCore/QObject \
   /opt/Qt/5.15.2/gcc_64/include/QtCore/qalgorithms.h \
   /opt/Qt/5.15.2/gcc_64/include/QtCore/qarraydata.h \

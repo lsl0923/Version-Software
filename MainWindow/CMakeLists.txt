@@ -38,6 +38,8 @@ add_library(MainWindow SHARED
   CameraSettingsDialog.h CameraSettingsDialog.cpp CameraSettingsDialog.ui
   ThresholdDialog.h ThresholdDialog.cpp ThresholdDialog.ui
   mainwindow.h mainwindow.cpp mainwindow.ui
+  TemMatcherSetting.h TemMatcherSetting.cpp TemMatcherSetting.ui
+  ROIOptionBox.h ROIOptionBox.cpp ROIOptionBox.ui
 
 
 

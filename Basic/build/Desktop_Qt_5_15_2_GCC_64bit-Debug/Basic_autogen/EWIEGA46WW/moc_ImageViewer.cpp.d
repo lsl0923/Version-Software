@@ -1,5 +1,6 @@
-/home/lsl/Code/Basic/build/Desktop_Qt_5_15_2_GCC_64bit-Debug/Basic_autogen/EWIEGA46WW/moc_ImageViewer.cpp: /home/lsl/Code/Basic/ImageViewer.h \
-  /home/lsl/Code/Basic/build/Desktop_Qt_5_15_2_GCC_64bit-Debug/Basic_autogen/moc_predefs.h \
+/home/lsl/VisionSoftWare/Version-Software/Basic/build/Desktop_Qt_5_15_2_GCC_64bit-Debug/Basic_autogen/EWIEGA46WW/moc_ImageViewer.cpp: /home/lsl/VisionSoftWare/Version-Software/Basic/ImageViewer.h \
+  /home/lsl/VisionSoftWare/Version-Software/Basic/build/Desktop_Qt_5_15_2_GCC_64bit-Debug/Basic_autogen/moc_predefs.h \
+  /home/lsl/VisionSoftWare/Version-Software/Basic/Basic_global.h \
   /opt/Qt/5.15.2/gcc_64/include/QtCore/qalgorithms.h \
   /opt/Qt/5.15.2/gcc_64/include/QtCore/qarraydata.h \
   /opt/Qt/5.15.2/gcc_64/include/QtCore/qatomic.h \

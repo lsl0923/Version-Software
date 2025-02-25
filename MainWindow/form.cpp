@@ -8,6 +8,8 @@
 #include <QFileDialog>
 #include <QStringList>
 #include<QMenuBar>
+#include<QLabel>
+#include<QTimer>
 
 
 #include "ImageViewer.h"
@@ -54,12 +56,11 @@ Form::Form(QWidget *parent)
     toolsFlows_ = std::vector<ToolsFlow>(5);
     QStandardItemModel* model = new QStandardItemModel;
     ui->ToolsWight->setModel(model);
-    QString pluginPath = "/home/lsl/Code/BGR2Gray/build/Desktop_Qt_5_15_2_GCC_64bit-Debug/libBGR2Gray.so";
+    QString pluginPath = "/home/lsl/VisionSoftWare/Version-Software/BGR2Gray/build/Desktop_Qt_5_15_2_GCC_64bit-Debug/libBGR2Gray.so";
     loadPlugin(pluginPath);
-    pluginPath = "/home/lsl/Code/ImageLoad/build/Desktop_Qt_5_15_2_GCC_64bit-Debug/libImageLoad.so";
+    pluginPath = "/home/lsl/VisionSoftWare/Version-Software/ImageLoad/build/Desktop_Qt_5_15_2_GCC_64bit-Debug/libImageLoad.so";
     loadPlugin(pluginPath);
     cameraManager_ = NULL;
-    QMenuBar *menubar = new QMenuBar();
     //把菜单栏放入窗口中
 }
 
@@ -583,7 +584,56 @@ void Form::onActionOpenImg()
         imageViewer_->loadImages(filePaths);
     }
 }
+void Form::onActionSaveImg()
+{
+    cv::Mat save = imageViewer_->getImage();
+    if (save.empty())
+    {
+        showMessage("❌ 保存失败：图像为空！");
+        return;
+    }
+    QDir baseDir(QCoreApplication::applicationDirPath());
+    baseDir.cdUp();
+    baseDir.cdUp();
+    baseDir.cdUp();
+    baseDir.cdUp();
+    QString saveDirPath = baseDir.absoluteFilePath("SavedPhoto");
+    QDir saveDir(saveDirPath);
+    // 确保目录存在
+    if (!saveDir.exists())
+    {
+        saveDir.mkpath(".");
+    }
+    QString timestamp = QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss");
+    QString savePath = saveDirPath + QString("/%1.bmp").arg(timestamp);
+    qDebug()<<baseDir;
+    if(!cv::imwrite(savePath.toStdString(),save))
+    {
+        showMessage("❌ 保存失败！");
+    }
+    else
+    {
+       showMessage(QString("✅ 保存成功！\n%1").arg(savePath));
+    }
+}
+void Form::showMessage(const QString &text)
+{
+    QLabel *label = new QLabel(text, this); // 创建 QLabel
+    label->setStyleSheet("background-color: rgba(0,0,0,150); color: white; padding: 10px; border-radius: 5px;");
+    label->setAlignment(Qt::AlignCenter);
+    label->setWindowFlags(Qt::Tool | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint); // 无边框，置顶
+    label->adjustSize(); // 调整大小
+    label->setWordWrap(true);
+    // 计算窗口中心位置
+    QSize formSize = this->size();
+    QPoint center = this->mapToGlobal(QPoint(formSize.width() / 2 - label->width() / 2, formSize.height() / 2 - label->height() / 2));
+    label->move(center);
 
+    label->show(); // 显示消息
+
+    // 2 秒后自动关闭
+    QTimer::singleShot(2000, label, &QWidget::close);
+}
 /*
 void Form::on_pushButton_6_clicked()
 {
@@ -614,4 +664,40 @@ void Form::on_pushButton_6_clicked()
 }
 */
 
+
+
+void Form::on_pen_clicked()
+{
+    imageViewer_->setMode(PaintMode::PaintMode_FreeDraw);
+}
+
+
+void Form::on_mouse_clicked()
+{
+    imageViewer_->setMode(PaintMode::PaintMode_None);
+}
+
+
+void Form::on_rect_clicked()
+{
+    imageViewer_->setMode(PaintMode::PaintMode_Rectangle);
+}
+
+
+void Form::on_ellips_clicked()
+{
+    imageViewer_->setMode(PaintMode::PaintMode_Ellipse);
+}
+
+
+void Form::on_radioButton_clicked()
+{
+    imageViewer_->setMode(PaintMode::PaintMode_Line);
+}
+
+
+void Form::on_radioButton_2_clicked()
+{
+    imageViewer_->setMode(PaintMode::PaintMode_Erase);
+}
 

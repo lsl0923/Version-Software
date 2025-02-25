@@ -4,6 +4,8 @@
 #include<QDebug>
 #include"ToolsFlow.h"
 #include"ThresholdDialog.h"
+#include"TemMatcherSetting.h"
+
 InputConfigDialog::InputConfigDialog(std::string id ,cv::Mat img ,QWidget *parent)
     : QDialog(parent)
     , ui(new Ui::InputConfigDialog)
@@ -244,6 +246,11 @@ void InputConfigDialog::on_inputListWidget_itemDoubleClicked(QListWidgetItem *it
         //addNumericInput((input));
         ThresholdDialog setThresholdDilog(tool_,img_);
         setThresholdDilog.exec();
+    }
+    else if(tool_->getName() == "TemMatcher" && input != "image")
+    {
+        TemMatcherSetting temmatchersetting(tool_,img_);
+        temmatchersetting.exec();
     }
 }
 

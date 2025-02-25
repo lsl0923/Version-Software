@@ -1,6 +1,7 @@
 #include "ThresholdDialog.h"
 #include "ui_ThresholdDialog.h"
 #include"QDebug"
+#include<QThread>
 ThresholdDialog::ThresholdDialog(std::shared_ptr<ToolsBase> tool,cv::Mat img, QWidget *parent)
     : QDialog(parent), tool_(tool), thresholdValue_(128),ui(new Ui::ThresholdDialog)
 {
@@ -9,6 +10,7 @@ ThresholdDialog::ThresholdDialog(std::shared_ptr<ToolsBase> tool,cv::Mat img, QW
     viewer_ = new ImageViewer(ui->frame);
     ui->verticalLayout_3->addWidget(viewer_);
     viewer_->setImage(img);
+    QThread::msleep(100);
     viewer_->centerImage();
     img_ = img.clone();
 }

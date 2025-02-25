@@ -26,6 +26,8 @@ public:
     void loadPluginC(const QString& path);
     void onActionOpenUSB();
     void onActionOpenImg();
+    void onActionSaveImg();
+    void showMessage(const QString &text);
 
 public slots:
     void updateImage(cv::Mat img);
@@ -48,6 +50,18 @@ private slots:
     void showInputConfigDialog(ToolItem* toolItem);
 
    // void on_pushButton_6_clicked();
+
+    void on_pen_clicked();
+
+    void on_mouse_clicked();
+
+    void on_rect_clicked();
+
+    void on_ellips_clicked();
+
+    void on_radioButton_clicked();
+
+    void on_radioButton_2_clicked();
 
 protected:
     //void dropEvent(QDropEvent *event) override;

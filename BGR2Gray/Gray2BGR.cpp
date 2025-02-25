@@ -80,7 +80,7 @@ int Gray2BGR::runSub()
 
 bool Gray2BGR::validateInputs()
 {
-     std::vector<IOData>& data = inputs_.data;
+    std::vector<IOData>& data = inputs_.data;
     // 查找是否存在名为 "image" 的输入
     auto it = std::find_if(data.begin(), data.end(), [](const IOData& io){
         return io.name == "image";

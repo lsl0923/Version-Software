@@ -82,12 +82,71 @@ QImage MatToQImage(const cv::Mat& mat)
     return QImage();
 }
 
+void alphaBlend(const cv::Mat &overlay, const cv::Mat &background, cv::Mat &output)
+{
+    CV_Assert(overlay.size() == background.size());
+    CV_Assert(overlay.type() == CV_8UC4 && background.type() == CV_8UC3);
+
+    // 拆分 overlay 图像的 BGRA 通道
+    std::vector<cv::Mat> overlayChannels(4);
+    cv::split(overlay, overlayChannels);
+    cv::Mat overlayB = overlayChannels[0];
+    cv::Mat overlayG = overlayChannels[1];
+    cv::Mat overlayR = overlayChannels[2];
+    cv::Mat overlayA = overlayChannels[3];
+
+    // 归一化 Alpha 通道 (转为 0~1 的 float)
+    cv::Mat alphaFloat;
+    overlayA.convertTo(alphaFloat, CV_32F, 1.0 / 255);
+
+    // 确保 Alpha 通道尺寸正确
+    if (alphaFloat.size() != overlayB.size()) {
+        cv::resize(alphaFloat, alphaFloat, overlayB.size(), 0, 0, cv::INTER_LINEAR);
+    }
+
+    // 转换 overlay 颜色通道为 float 以进行计算
+    cv::Mat overlayB32F, overlayG32F, overlayR32F;
+    overlayB.convertTo(overlayB32F, CV_32F, 1.0 / 255);
+    overlayG.convertTo(overlayG32F, CV_32F, 1.0 / 255);
+    overlayR.convertTo(overlayR32F, CV_32F, 1.0 / 255);
+
+    // 拆分背景图像的 BGR 通道
+    std::vector<cv::Mat> bgChannels(3);
+    cv::split(background, bgChannels);
+    cv::Mat bgB, bgG, bgR;
+    bgChannels[0].convertTo(bgB, CV_32F, 1.0 / 255);
+    bgChannels[1].convertTo(bgG, CV_32F, 1.0 / 255);
+    bgChannels[2].convertTo(bgR, CV_32F, 1.0 / 255);
+
+    // 计算最终的颜色通道: output = overlay * alpha + background * (1 - alpha)
+    cv::Mat outB, outG, outR;
+    cv::multiply(overlayB32F, alphaFloat, outB);
+    cv::multiply(bgB, (1.0 - alphaFloat), bgB);
+    outB += bgB;
+
+    cv::multiply(overlayG32F, alphaFloat, outG);
+    cv::multiply(bgG, (1.0 - alphaFloat), bgG);
+    outG += bgG;
+
+    cv::multiply(overlayR32F, alphaFloat, outR);
+    cv::multiply(bgR, (1.0 - alphaFloat), bgR);
+    outR += bgR;
+
+    // 转换回 8 位格式
+    outB.convertTo(outB, CV_8U, 255);
+    outG.convertTo(outG, CV_8U, 255);
+    outR.convertTo(outR, CV_8U, 255);
+
+    // 合并通道
+    std::vector<cv::Mat> outputChannels = {outB, outG, outR};
+    cv::merge(outputChannels, output);
+}
 void ImageViewer::setImage(const cv::Mat &mat)
 {
 
 
     image_ = mat.clone();
-    overlay_ = cv::Mat(image_.rows, image_.cols, CV_8UC4, cv::Scalar(0, 0, 0,0));  // 初始化为透明图像
+    overlay_ = cv::Mat(image_.rows, image_.cols, CV_8UC4, cv::Scalar(0, 0, 0, 0));  // 初始化为透明图像
 
     // 根据窗口大小调整缩放比例
    /* if (parent_width_ > 0 && parent_height_ > 0)
@@ -102,20 +161,16 @@ void ImageViewer::setImage(const cv::Mat &mat)
     update();
 }
 
-void mergeImg(cv::Mat& image , cv::Mat overlay)
-{
-
-}
 void ImageViewer::paintEvent(QPaintEvent *event)
 {
+    cv::Mat output;
 
-    QImage image_overlay = MatToQImage(overlay_);
+    alphaBlend(overlay_,image_,output);
     QImage image = MatToQImage(image_);
     QPainter painter(this);
     QRect targetRect(offset_, QSize(image.width() * scaleFactor_, image.height() * scaleFactor_));
     painter.drawImage(targetRect, image);
-   painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
-    painter.drawImage(targetRect, image_overlay);
+
     if (!coordinateText_.isEmpty()) {
         QFont font = painter.font();
         font.setPointSize(10); // 设置字体大小
@@ -204,7 +259,7 @@ void ImageViewer::mouseMoveEvent(QMouseEvent *event)
             }
             else if (paintmode_ == PaintMode_Erase)
             {
-                erase(event->pos(), 20);  // 这里10是擦除区域的大小，你可以根据需要调整
+                erase(event->pos(), 10);  // 这里10是擦除区域的大小，你可以根据需要调整
             }
             lastPos_ = (event->pos() - offset_) / scaleFactor_;
         }
@@ -385,7 +440,7 @@ void ImageViewer::drawFreeLine(QPoint point)
     }
     point = (point - offset_) / scaleFactor_;
     cv::line(overlay_, cv::Point(lastPos_.x(), lastPos_.y()),
-             cv::Point(point.x(), point.y()), cv::Scalar(255, 255, 0,255), 2, cv::LINE_AA);
+             cv::Point(point.x(), point.y()), cv::Scalar(0, 0, 255), 2, cv::LINE_AA);
 
     lastPos_ = point;
     //updateImageDisplay();
@@ -396,7 +451,7 @@ void ImageViewer::drawFreeLine(QPoint point)
 void ImageViewer::drawRectangle(QPoint start, QPoint end)
 {
 
-    cv::rectangle(overlay_, cv::Rect(cv::Point(start.x(),start.y()), cv::Point(end.x(),end.y())), cv::Scalar(255, 255, 0,255), 2);
+    cv::rectangle(overlay_, cv::Rect(cv::Point(start.x(),start.y()), cv::Point(end.x(),end.y())), cv::Scalar(0, 255, 0), 2);
     //updateImageDisplay();
     update();
 }
@@ -414,8 +469,9 @@ void ImageViewer::drawEllipse(QPoint start, QPoint end)
     int axisY = std::abs(pt1.y - pt2.y) / 2;
 
     // 绘制椭圆
+    cv::Scalar color(0, 0, 255); // 红色（BGR格式）
     int thickness = 2; // 设置线条粗细
-    cv::ellipse(overlay_, center, cv::Size(axisX, axisY), 0, 0, 360, cv::Scalar(255, 255, 0,255), thickness);
+    cv::ellipse(overlay_, center, cv::Size(axisX, axisY), 0, 0, 360, color, thickness);
 
     // 更新图像显示
     //updateImageDisplay();
@@ -427,7 +483,7 @@ void ImageViewer::drawEllipse(QPoint start, QPoint end)
 void ImageViewer::drawLine(QPoint start, QPoint end)
 {
     cv::line(overlay_, cv::Point(start.x(), start.y()),
-             cv::Point(end.x(), end.y()), cv::Scalar(255, 255, 0,255), 2, cv::LINE_AA);
+             cv::Point(end.x(), end.y()), cv::Scalar(255, 255, 0), 2, cv::LINE_AA);
     //updateImageDisplay();
 
     update();
@@ -436,7 +492,7 @@ void ImageViewer::drawLine(QPoint start, QPoint end)
 void ImageViewer::erase(QPoint pos, int size)
 {
     pos = (pos - offset_) / scaleFactor_;
-    cv::circle(overlay_, cv::Point(pos.x(), pos.y()), size, cv::Scalar(255, 255, 255,0), -1);  // 用白色（255, 255, 255）模拟擦除
+    cv::circle(overlay_, cv::Point(pos.x(), pos.y()), size, cv::Scalar(255, 255, 255), -1);  // 用白色（255, 255, 255）模拟擦除
     update();  // 更新视图
     //updateImageDisplay();
     update();

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(BGR2Gray LANGUAGES CXX)
+project(Tools LANGUAGES CXX)
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
@@ -23,6 +23,7 @@ add_library(BGR2Gray MODULE
   Gray2BGR.h Gray2BGR.cpp
   Manager.h Manager.cpp
   BinaryThresholdTool.h BinaryThresholdTool.cpp
+  TemMatcher.h TemMatcher.cpp
 
 )
 

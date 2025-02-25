@@ -1,4 +1,4 @@
-# Install script for directory: /home/lsl/Code/Basic
+# Install script for directory: /home/lsl/VisionSoftWare/Version-Software/Basic
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -50,5 +50,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/home/lsl/Code/Basic/build/Desktop_Qt_5_15_2_GCC_64bit-Debug/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/lsl/VisionSoftWare/Version-Software/Basic/build/Desktop_Qt_5_15_2_GCC_64bit-Debug/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

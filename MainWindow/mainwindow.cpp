@@ -1,6 +1,12 @@
+#include<QDebug>
+
+
+
+
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include"form.h"
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -33,7 +39,8 @@ void MainWindow::onActionOpenIKapCV()
 
 void MainWindow::onActionSaveImg()
 {
-
+    form_->onActionSaveImg();
+    qDebug()<<"onActionSaveImg";
 }
 
 

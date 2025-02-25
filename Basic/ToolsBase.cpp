@@ -8,10 +8,12 @@
 ToolsBase::ToolsBase()
 {
     toolId_ = generateUniqueTimestamp();
+      qDebug()<<"~To1111111olsBase11111111111111111";
 }
 ToolsBase:: ~ToolsBase()
 {
-    qDebug()<<"~ToolsBase";
+    qDebug()<<"~To1111111olsBase11111111111111111";
+    qDebug()<<"~To1111111olsBase11111111111111111";
 }
 int ToolsBase::run()
 {

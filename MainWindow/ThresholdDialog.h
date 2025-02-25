@@ -3,7 +3,8 @@
 #include"ImageViewer.h"
 #include <QDialog>
 #include"ToolsBase.h"
-namespace Ui {
+namespace Ui
+{
 class ThresholdDialog;
 }
 
@@ -12,7 +13,7 @@ class ThresholdDialog : public QDialog
     Q_OBJECT
 
 public:
-      explicit ThresholdDialog(std::shared_ptr<ToolsBase> tool,cv::Mat img, QWidget *parent = nullptr);
+    explicit ThresholdDialog(std::shared_ptr<ToolsBase> tool,cv::Mat img, QWidget *parent = nullptr);
     ~ThresholdDialog();
       void updateThreshold();
 private slots:
