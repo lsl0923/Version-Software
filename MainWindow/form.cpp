@@ -10,6 +10,9 @@
 #include<QMenuBar>
 #include<QLabel>
 #include<QTimer>
+#include<QColorDialog>
+#include<QMessageBox>
+
 
 
 #include "ImageViewer.h"
@@ -584,9 +587,25 @@ void Form::onActionOpenImg()
         imageViewer_->loadImages(filePaths);
     }
 }
+
+
+
 void Form::onActionSaveImg()
 {
+    QMessageBox msgBox;
+    msgBox.setWindowTitle("保存确认");
+    msgBox.setText("是否要保存墨迹？");
+    msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+    msgBox.setButtonText(QMessageBox::Yes, "是");
+    msgBox.setButtonText(QMessageBox::No, "否");
+    int ret = msgBox.exec();
     cv::Mat save = imageViewer_->getImage();
+    if (ret == QMessageBox::Yes)
+    {
+        save = imageViewer_->getWriteImage();
+    }
+
+
     if (save.empty())
     {
         showMessage("❌ 保存失败：图像为空！");
@@ -699,5 +718,15 @@ void Form::on_radioButton_clicked()
 void Form::on_radioButton_2_clicked()
 {
     imageViewer_->setMode(PaintMode::PaintMode_Erase);
+}
+
+
+void Form::on_colorSelect_clicked()
+{
+    QColor color = QColorDialog::getColor(imageViewer_->getColor(), this, "选择颜色");
+    if (color.isValid())
+    {
+        imageViewer_->setColor(color);
+    }
 }
 

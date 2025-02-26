@@ -32,12 +32,14 @@ public:
     void setImage(const cv::Mat &mat);
     void centerImage();
     cv::Mat getImage() const;
+    cv::Mat getWriteImage() const;
     void loadImages(const QStringList &filePaths); // 加载多张图片
     void nextImage();                              // 显示下一张图片
     void prevImage();                              // 显示上一张图片
     void normalize();
     void setMode(PaintMode mode);
-
+    QColor& getColor();
+    void setColor(QColor& color);
 protected:
     void paintEvent(QPaintEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
@@ -70,6 +72,7 @@ private:
     double minSize_;
     bool drawing_;
     PaintMode paintmode_;
+    QColor selectedColor_;
 };
 
 #endif // IMAGEVIEWER_H

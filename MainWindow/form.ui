@@ -93,6 +93,13 @@
            </property>
           </widget>
          </item>
+         <item>
+          <widget class="QPushButton" name="colorSelect">
+           <property name="text">
+            <string>颜色板</string>
+           </property>
+          </widget>
+         </item>
         </layout>
        </item>
        <item>

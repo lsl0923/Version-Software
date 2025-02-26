@@ -102,10 +102,7 @@ void ImageViewer::setImage(const cv::Mat &mat)
     update();
 }
 
-void mergeImg(cv::Mat& image , cv::Mat overlay)
-{
 
-}
 void ImageViewer::paintEvent(QPaintEvent *event)
 {
 
@@ -270,6 +267,62 @@ cv::Mat ImageViewer::getImage() const
 {
     return image_;
 }
+cv::Mat ImageViewer::getWriteImage() const
+{
+    if (overlay_.empty()) {
+        return image_.clone();  // 没有 overlay，直接返回 image_ 的拷贝
+    }
+
+    // 复制原图，以免修改原始数据
+    cv::Mat image_copy = image_.clone();
+
+    // 确保尺寸匹配
+    if (overlay_.size() != image_copy.size()) {
+        cv::resize(overlay_, overlay_, image_copy.size());
+    }
+
+    // 确保 image_copy 是三通道（BGR）
+    if (image_copy.channels() == 1) {
+        cv::cvtColor(image_copy, image_copy, cv::COLOR_GRAY2BGR);
+    }
+
+    // **处理 overlay_ 是 4 通道 (BGRA)**
+    if (overlay_.channels() == 4) {
+        cv::Mat overlay_rgb, alpha_channel;
+
+        // 分离 BGRA 四个通道
+        std::vector<cv::Mat> channels(4);
+        cv::split(overlay_, channels);
+        cv::merge(std::vector<cv::Mat>{channels[0], channels[1], channels[2]}, overlay_rgb); // 去掉 alpha 通道
+        alpha_channel = channels[3];  // 获取 Alpha 通道
+
+        // 归一化 alpha 通道 (0-255 -> 0.0-1.0)
+        cv::Mat alpha_float;
+        alpha_channel.convertTo(alpha_float, CV_32F, 1.0 / 255.0);
+
+        // 扩展 alpha 通道，使其变成 3 通道
+        cv::Mat alpha_3channel;
+        cv::cvtColor(alpha_float, alpha_3channel, cv::COLOR_GRAY2BGR);
+
+        // **进行透明度叠加**
+        cv::Mat result;
+        image_copy.convertTo(image_copy, CV_32F);  // 转换为 float 计算
+        overlay_rgb.convertTo(overlay_rgb, CV_32F);
+        cv::multiply(alpha_3channel, overlay_rgb, overlay_rgb);  // 叠加 overlay
+        cv::multiply(cv::Scalar::all(1.0) - alpha_3channel, image_copy, image_copy);  // 叠加背景
+        cv::add(image_copy, overlay_rgb, result);  // 合并两张图
+        result.convertTo(result, CV_8U);  // 转回 8 位图
+
+        return result;  // 返回拷贝版本
+    }
+
+    // **如果 overlay_ 不是 4 通道，就用 addWeighted() 直接叠加**
+    double alpha = 0.7, beta = 1.0 - alpha;
+    cv::Mat result;
+    cv::addWeighted(image_copy, alpha, overlay_, beta, 0, result);
+    return result;
+}
+
 
 void ImageViewer::resizeEvent(QResizeEvent  *event)
 {
@@ -294,6 +347,8 @@ void ImageViewer::resizeEvent(QResizeEvent  *event)
         timer.start(50);  // 每 50ms 检查一次
         loop.exec();  // 阻塞直到 parentWidget() 尺寸有效
     }
+    parent_width_ = parentWidget->width();
+    parent_height_ = parentWidget->height();
 }
 
 
@@ -383,9 +438,10 @@ void ImageViewer::drawFreeLine(QPoint point)
         lastPos_ = point;
         return;
     }
+    cv::Scalar curColor(selectedColor_.blue(), selectedColor_.green(), selectedColor_.red(),255);
     point = (point - offset_) / scaleFactor_;
     cv::line(overlay_, cv::Point(lastPos_.x(), lastPos_.y()),
-             cv::Point(point.x(), point.y()), cv::Scalar(255, 255, 0,255), 2, cv::LINE_AA);
+             cv::Point(point.x(), point.y()), curColor, 2, cv::LINE_AA);
 
     lastPos_ = point;
     //updateImageDisplay();
@@ -395,8 +451,8 @@ void ImageViewer::drawFreeLine(QPoint point)
 
 void ImageViewer::drawRectangle(QPoint start, QPoint end)
 {
-
-    cv::rectangle(overlay_, cv::Rect(cv::Point(start.x(),start.y()), cv::Point(end.x(),end.y())), cv::Scalar(255, 255, 0,255), 2);
+    cv::Scalar curColor(selectedColor_.blue(), selectedColor_.green(), selectedColor_.red(),255);
+    cv::rectangle(overlay_, cv::Rect(cv::Point(start.x(),start.y()), cv::Point(end.x(),end.y())), curColor, 2);
     //updateImageDisplay();
     update();
 }
@@ -415,7 +471,8 @@ void ImageViewer::drawEllipse(QPoint start, QPoint end)
 
     // 绘制椭圆
     int thickness = 2; // 设置线条粗细
-    cv::ellipse(overlay_, center, cv::Size(axisX, axisY), 0, 0, 360, cv::Scalar(255, 255, 0,255), thickness);
+    cv::Scalar curColor(selectedColor_.blue(), selectedColor_.green(), selectedColor_.red(),255);
+    cv::ellipse(overlay_, center, cv::Size(axisX, axisY), 0, 0, 360, curColor, thickness);
 
     // 更新图像显示
     //updateImageDisplay();
@@ -426,8 +483,9 @@ void ImageViewer::drawEllipse(QPoint start, QPoint end)
 
 void ImageViewer::drawLine(QPoint start, QPoint end)
 {
+    cv::Scalar curColor(selectedColor_.blue(), selectedColor_.green(), selectedColor_.red(),255);
     cv::line(overlay_, cv::Point(start.x(), start.y()),
-             cv::Point(end.x(), end.y()), cv::Scalar(255, 255, 0,255), 2, cv::LINE_AA);
+             cv::Point(end.x(), end.y()), curColor, 2, cv::LINE_AA);
     //updateImageDisplay();
 
     update();
@@ -436,8 +494,17 @@ void ImageViewer::drawLine(QPoint start, QPoint end)
 void ImageViewer::erase(QPoint pos, int size)
 {
     pos = (pos - offset_) / scaleFactor_;
-    cv::circle(overlay_, cv::Point(pos.x(), pos.y()), size, cv::Scalar(255, 255, 255,0), -1);  // 用白色（255, 255, 255）模拟擦除
+    cv::Scalar curColor(255, 255, 255,0);
+    cv::circle(overlay_, cv::Point(pos.x(), pos.y()), size,curColor, -1);  // 用白色（255, 255, 255）模拟擦除
     update();  // 更新视图
     //updateImageDisplay();
-    update();
+}
+
+QColor& ImageViewer::getColor()
+{
+    return selectedColor_;
+}
+void ImageViewer::setColor(QColor& color)
+{
+    selectedColor_ = color;
 }

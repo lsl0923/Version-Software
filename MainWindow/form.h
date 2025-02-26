@@ -63,6 +63,8 @@ private slots:
 
     void on_radioButton_2_clicked();
 
+    void on_colorSelect_clicked();
+
 protected:
     //void dropEvent(QDropEvent *event) override;
 private:
