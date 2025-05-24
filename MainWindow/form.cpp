@@ -25,6 +25,7 @@
 #include"InputConfigDialog.h"
 #include "CameraManager.h"
 #include "CameraSettingsDialog.h"
+#include"FaceDetectSetting.h"
 
 Form::Form(QWidget *parent)
     : QWidget(parent)
@@ -59,9 +60,9 @@ Form::Form(QWidget *parent)
     toolsFlows_ = std::vector<ToolsFlow>(5);
     QStandardItemModel* model = new QStandardItemModel;
     ui->ToolsWight->setModel(model);
-    QString pluginPath = "/home/lsl/VisionSoftWare/Version-Software/BGR2Gray/build/Desktop_Qt_5_15_2_GCC_64bit-Debug/libBGR2Gray.so";
+    QString pluginPath = "../../../BGR2Gray/build/Desktop_Qt_5_15_2_GCC_64bit-Debug/libBGR2Gray.so";
     loadPlugin(pluginPath);
-    pluginPath = "/home/lsl/VisionSoftWare/Version-Software/ImageLoad/build/Desktop_Qt_5_15_2_GCC_64bit-Debug/libImageLoad.so";
+    pluginPath = "../../../ImageLoad/build/Desktop_Qt_5_15_2_GCC_64bit-Debug/libImageLoad.so";
     loadPlugin(pluginPath);
     cameraManager_ = NULL;
     //把菜单栏放入窗口中
@@ -363,10 +364,12 @@ void Form::showInputConfigDialog(ToolItem* toolItem)
     std::string toolId = tool->getToolId();
     bool isCurrentToolFound = false;
 
-    for (const auto& flowTool : flow.getTools()) {
+    for (const auto& flowTool : flow.getTools())
+    {
         if (!flowTool) continue;
 
-        if (flowTool->getToolId() == toolId) {
+        if (flowTool->getToolId() == toolId)
+        {
             isCurrentToolFound = true;
             break;
         }
@@ -401,7 +404,8 @@ void Form::showInputConfigDialog(ToolItem* toolItem)
 }
 
 
-void Form::onRightClick(const QPoint& pos) {
+void Form::onRightClick(const QPoint& pos)
+{
     QListWidgetItem* item = ui->RunWidget->itemAt(pos);
     ToolItem* toolItem = dynamic_cast<ToolItem*>(item);
     if (!toolItem) return; // 确保 toolItem 存在
@@ -534,7 +538,7 @@ void Form::setInputMenu(const std::string& toolId, QMenu* inputMenu) {
 
 void Form::on_LoadImage_clicked()
 {
-    QStringList filePaths = QFileDialog::getOpenFileNames(this, "Select Images", "", "Images (*.png *.jpg *.bmp)");
+    QStringList filePaths = QFileDialog::getOpenFileNames(this, "Select Images", "", "Images (*.png *.jpg *.bmp *.tif)");
     if (!filePaths.isEmpty())
     {
         imageViewer_->loadImages(filePaths);
@@ -549,6 +553,7 @@ void Form::on_nextImage_clicked()
 
 void Form::onActionOpenUSB()
 {
+
     if (!cameraManager_)
     {
         cameraManager_ = std::make_shared<CameraManager>(CameraType::OpenCV);
@@ -576,12 +581,14 @@ void Form::onActionOpenUSB()
 }
 void Form::updateImage(cv::Mat img)
 {
+    cv::flip(img, img, 1);
     imageViewer_->setImage(img);
+    on_pushButton_clicked();
     update();
 }
 void Form::onActionOpenImg()
 {
-    QStringList filePaths = QFileDialog::getOpenFileNames(this, "Select Images", "", "Images (*.png *.jpg *.bmp)");
+    QStringList filePaths = QFileDialog::getOpenFileNames(this, "Select Images", "", "Images (*.png *.jpg *.bmp *.tif)");
     if (!filePaths.isEmpty())
     {
         imageViewer_->loadImages(filePaths);
@@ -729,4 +736,6 @@ void Form::on_colorSelect_clicked()
         imageViewer_->setColor(color);
     }
 }
+
+
 

@@ -6,7 +6,7 @@ CameraManager::CameraManager(CameraType type)
 {
     if(type == CameraType::OpenCV)
     {
-        QString path = "/home/lsl/Code/OpenCVCamera/build/Desktop_Qt_5_15_2_GCC_64bit-Debug/libOpenCVCamera.so";
+        QString path = "/home/lsl/VisionSoftWare/Version-Software/OpenCVCamera/build/Desktop_Qt_5_15_2_GCC_64bit-Debug/libOpenCVCamera.so";
         QPluginLoader loader(path);
         QObject *plugin = loader.instance();
         if (!plugin)

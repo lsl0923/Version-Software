@@ -40,6 +40,7 @@ add_library(MainWindow SHARED
   mainwindow.h mainwindow.cpp mainwindow.ui
   TemMatcherSetting.h TemMatcherSetting.cpp TemMatcherSetting.ui
   ROIOptionBox.h ROIOptionBox.cpp ROIOptionBox.ui
+  FaceDetectSetting.h FaceDetectSetting.cpp FaceDetectSetting.ui
 
 
 

@@ -5,7 +5,7 @@
 #include"ToolsFlow.h"
 #include"ThresholdDialog.h"
 #include"TemMatcherSetting.h"
-
+#include"FaceDetectSetting.h"
 InputConfigDialog::InputConfigDialog(std::string id ,cv::Mat img ,QWidget *parent)
     : QDialog(parent)
     , ui(new Ui::InputConfigDialog)
@@ -251,6 +251,12 @@ void InputConfigDialog::on_inputListWidget_itemDoubleClicked(QListWidgetItem *it
     {
         TemMatcherSetting temmatchersetting(tool_,img_);
         temmatchersetting.exec();
+    }
+    else if(tool_->getName() == "FaceDetect")
+    {
+        FaceDetectSetting facedetect(tool_,img_);  // 创建对话框
+        facedetect.exec();
+        return;
     }
 }
 

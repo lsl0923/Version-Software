@@ -24,6 +24,11 @@ add_library(BGR2Gray MODULE
   Manager.h Manager.cpp
   BinaryThresholdTool.h BinaryThresholdTool.cpp
   TemMatcher.h TemMatcher.cpp
+  FaceDetect.h FaceDetect.cpp
+  FastMTCNN.cpp
+  FastMTCNN.h
+  SphereFaceRecognizer.h SphereFaceRecognizer.cpp
+  FaceDatabase.h FaceDatabase.cpp
 
 )
 
