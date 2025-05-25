@@ -16,3 +16,17 @@
 16	41	1746705368778323109	/home/lsl/VisionSoftWare/Version-Software/Basic/build/Desktop_Qt_5_15_2_GCC_64bit-Debug/Basic_autogen/mocs_compilation.cpp	b235b8ba448625d8
 41	1036	1746705368803324408	CMakeFiles/Basic.dir/ToolsBase.cpp.o	1714ecc865a11fbe
 1036	1472	1746705369798375801	libBasic.so	b149d803edc3f2e
+11	225	1748161704575468555	Basic_autogen/timestamp	b235b8ba448625d8
+11	225	1748161704575468555	Basic_autogen/mocs_compilation.cpp	b235b8ba448625d8
+11	225	1748161704575468555	/home/lsl/VisionSoftWare/Version-Software/Basic/build/Desktop_Qt_5_15_2_GCC_64bit-Debug/Basic_autogen/timestamp	b235b8ba448625d8
+11	225	1748161704575468555	/home/lsl/VisionSoftWare/Version-Software/Basic/build/Desktop_Qt_5_15_2_GCC_64bit-Debug/Basic_autogen/mocs_compilation.cpp	b235b8ba448625d8
+225	868	1748161704579468727	CMakeFiles/Basic.dir/managerbase.cpp.o	95993e8e043876fa
+225	2175	1748161704579468727	CMakeFiles/Basic.dir/Basic_autogen/mocs_compilation.cpp.o	3ef9bfa056af79e
+225	2319	1748161704579468727	CMakeFiles/Basic.dir/ImageViewer.cpp.o	ba70c730341efd21
+2319	2695	1748161706673558271	libBasic.so	b149d803edc3f2e
+3	22	1748161901121166635	Basic_autogen/timestamp	b235b8ba448625d8
+3	22	1748161901121166635	Basic_autogen/mocs_compilation.cpp	b235b8ba448625d8
+3	22	1748161901121166635	/home/lsl/VisionSoftWare/Version-Software/Basic/build/Desktop_Qt_5_15_2_GCC_64bit-Debug/Basic_autogen/timestamp	b235b8ba448625d8
+3	22	1748161901121166635	/home/lsl/VisionSoftWare/Version-Software/Basic/build/Desktop_Qt_5_15_2_GCC_64bit-Debug/Basic_autogen/mocs_compilation.cpp	b235b8ba448625d8
+22	2187	1748161901141167161	CMakeFiles/Basic.dir/ImageViewer.cpp.o	ba70c730341efd21
+2187	2533	1748161903305224007	libBasic.so	b149d803edc3f2e

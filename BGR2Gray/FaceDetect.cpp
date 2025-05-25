@@ -94,191 +94,134 @@ void FaceDetect::faceDetect_Haar(cv::Mat& img, cv::Mat& dst, std::vector<cv::Rec
         cv::rectangle(dst, face, cv::Scalar(255, 0, 0), 2);
     }
 }
-int FaceDetect::runSub()
+int FaceDetect::finalizeOutput(const cv::Mat& img, int code,
+                               std::chrono::high_resolution_clock::time_point start)
 {
-    QString dbFile = "../../../FaceData/faces.json";
-    if(!validateInputs())
-    {
-        qDebug() << "Input ERROR!";
-        return -1;
-    }
-
-    auto start = std::chrono::high_resolution_clock::now();
-    //0 输出图像，1运行结果代码，2时间
-    qDebug() << "runSub FaceDetect";
-    cv::Mat img;
-
-    if(inputs_.getDataValue("image").type() == typeid(cv::Mat))
-    {
-        img = std::any_cast<cv::Mat>(inputs_.getDataValue("image"));
-    }
-    else
-    {
-        auto end = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double, std::milli> elapsed = end - start;
-        outputs_.addData("image",img);
-        outputs_.addData("errorCode",1);
-        outputs_.addData("runTime",elapsed.count());
-        qDebug() << "type error: need Mat";
-
-    }
-
-    if (img.empty())
-    {
-        qWarning() << "Received an empty Image!";
-        auto end = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double, std::milli> elapsed = end - start;
-        outputs_.addData("image",img);
-        outputs_.addData("errorCode",-1);
-        outputs_.addData("runTime",elapsed.count());
-        return -1;
-    }
-
-
-
-    int isSave;
-    if(inputs_.getDataValue("isSave").type() == typeid(int))
-    {
-        isSave = std::any_cast<int>(inputs_.getDataValue("isSave"));
-    }
-    if(isSave == 1)
-    {
-        cv::Mat dst = img.clone();
-        qDebug() << "Saving face to database...";
-
-        // 检测人脸
-        std::vector<cv::Rect> faceRectsTemp;
-        cv::Mat dstTemp;
-        faceDetect_FastMTCNN(img, dstTemp, faceRectsTemp);
-
-        if (faceRectsTemp.empty())
-        {
-            qWarning() << "No face found to save!";
-        }
-        else
-        {
-            cv::Mat face = img(faceRectsTemp[0]).clone(); // 取第一张人脸区域
-            cv::Mat feature;
-
-            if (recognizer_.extractFeature(face, feature)) // 提取特征
-            {
-                QString name;
-                if (inputs_.getDataValue("personName").type() == typeid(QString))
-                    name = std::any_cast<QString>(inputs_.getDataValue("personName"));
-                else
-                    name = "Unnamed";
-
-                FaceRecord record{name, feature};
-                db_.add(record);
-
-                // 可修改路径
-                if (!db_.save(dbFile))
-                {
-                    cv::putText(dst, "NG", cv::Point(10, 20),
-                                cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 255, 0), 1);
-                    qWarning() << "Failed to save face database!";
-                }
-
-                else
-                {
-                     qDebug() << "Saved face for:" << name;
-                    cv::putText(dst, "OK", cv::Point(10, 20),
-                                cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 255, 0), 1);
-                }
-
-            }
-            else
-            {
-                qWarning() << "Failed to extract face feature!";
-                cv::putText(dst, "NG", cv::Point(10, 20),
-                            cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 255, 0), 1);
-            }
-        }
-
-
-        outputs_.addData("image",dst);
-        auto end = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double, std::milli> elapsed = end - start;
-        outputs_.addData("runTime",elapsed.count());
-        outputs_.addData("errorCode",1);
-        return 1;
-    }
-
-
-
-
-    cv::Mat dst;
-      QString text("NG");
-    std::vector<cv::Rect> faceRectsTemp;
-    faceDetect_FastMTCNN(img, dst, faceRectsTemp);
-
-    if (faceRectsTemp.empty())
-    {
-        qWarning() << "No face found to recognize!";
-        // 可以选择返回错误码，下面添加输出数据示例
-        auto end = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double, std::milli> elapsed = end - start;
-        outputs_.addData("image", dst);
-        outputs_.addData("errorCode", -1);
-        outputs_.addData("runTime", elapsed.count());
-        return -1;
-    }
-    else
-    {
-        cv::Mat face = img(faceRectsTemp[0]).clone();
-        cv::Mat feature;
-
-        if (recognizer_.extractFeature(face, feature))
-        {
-            // 匹配逻辑
-            QString bestName = "Unknown";
-            float bestScore = -1.0f;
-            db_.load(dbFile);
-            for (const auto& record : db_.records)
-            {
-                std::vector<float> dbFeature = record.feature;
-                float sim = db_.cosineSimilarity(feature, dbFeature);
-
-                if (sim > bestScore)
-                {
-                    bestScore = sim;
-                    bestName = record.name;
-                }
-            }
-
-            const float threshold = 0.35f;
-            if (bestScore >= threshold)
-            {
-                text = QString("OK: %1 (%.2f)").arg(bestName).arg(bestScore);
-                cv::putText(dst, "OK", cv::Point(10, 20),
-                            cv::FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar(0, 255, 0), 1);
-                qDebug() << "Matched:" << bestName << ", score:" << bestScore;
-            }
-            else
-            {
-                cv::putText(dst, "No Match", cv::Point(10, 20),
-                            cv::FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar(0, 0, 255), 1);
-                qDebug() << "No match found. Best score:" << bestScore;
-            }
-        }
-        else
-        {
-            qWarning() << "Failed to extract face feature!";
-            cv::putText(dst, "NG", cv::Point(10, 20),
-                        cv::FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar(0, 0, 255), 1);
-        }
-    }
-
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double, std::milli> elapsed = end - start;
-
-    outputs_.addData("image", dst);
-    outputs_.addData("errorCode", 1);
+    outputs_.addData("image", img.clone());
+    outputs_.addData("errorCode", code);
     outputs_.addData("runTime", elapsed.count());
-    outputs_.addData("text",text);
-    return 1;
-
+    return code;
 }
+int FaceDetect::runSub()
+{
+    const QString dbFile = "../../../FaceData/faces.json";
+    QString resultText = "NG";
+    if (!validateInputs()) {
+        qWarning() << "Input ERROR!";
+        return -1;
+    }
+
+    const auto start = std::chrono::high_resolution_clock::now();
+
+    // 读取图像
+    cv::Mat img;
+    if (inputs_.getDataValue("image").type() == typeid(cv::Mat)) {
+        img = std::any_cast<cv::Mat>(inputs_.getDataValue("image"));
+    }
+
+    if (img.empty()) {
+        qWarning() << "Empty or invalid image!";
+        return finalizeOutput(img, -1, start);
+    }
+
+    // 是否是保存模式
+    int isSave = 0;
+    if (inputs_.getDataValue("isSave").type() == typeid(int)) {
+        isSave = std::any_cast<int>(inputs_.getDataValue("isSave"));
+    }
+
+    cv::Mat dst = img.clone();
+    std::vector<cv::Rect> faceRects;
+    cv::Mat tmp;
+    faceDetect_FastMTCNN(img, dst, faceRects);
+
+    if (faceRects.empty())
+    {
+        qWarning() << "No face detected!";
+        resultText = "No face detected!";
+        outputs_.addData("messege", resultText);
+        return finalizeOutput(dst, -1, start);
+    }
+
+    // 裁剪第一张人脸
+    cv::Mat feature;
+
+    if (!recognizer_.extractFeature(img, feature)) {
+        qWarning() << "Failed to extract face feature!";
+        cv::putText(dst, "NG", cv::Point(10, 20),
+                    cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 255), 1);
+        return finalizeOutput(dst, -1, start);
+    }
+
+    // 保存模式
+    if (isSave == 1)
+    {
+         resultText = "NG";
+        QString name = "Unnamed";
+        if (inputs_.getDataValue("personName").type() == typeid(QString)) {
+            name = std::any_cast<QString>(inputs_.getDataValue("personName"));
+        }
+
+        db_.add(FaceRecord{name, feature});
+        if (db_.save(dbFile)) {
+            resultText = "Saved face for:" + name;
+            qDebug() << "Saved face for:" << name;
+            cv::putText(dst, "OK", cv::Point(10, 20),
+                        cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 255, 0), 1);
+        } else {
+            resultText ="Failed to save database!";
+            qWarning() << "Failed to save database!";
+            cv::putText(dst, "NG", cv::Point(10, 20),
+                        cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 255), 1);
+        }
+        outputs_.addData("messege", resultText);
+        return finalizeOutput(dst, 1, start);
+    }
+
+    // 识别模式
+     resultText = "NG";
+    db_.load(dbFile);
+
+    std::vector<float> featVec;
+    if (feature.isContinuous()) {
+        featVec.assign((float*)feature.datastart, (float*)feature.dataend);
+    } else {
+        for (int i = 0; i < feature.rows; ++i) {
+            const float* rowPtr = feature.ptr<float>(i);
+            featVec.insert(featVec.end(), rowPtr, rowPtr + feature.cols);
+        }
+    }
+
+    QString bestName = "Unknown";
+    float bestScore = -1.0f;
+    for (const auto& record : db_.records) {
+        float sim = db_.cosineSimilarity(featVec, record.feature);
+        if (sim > bestScore) {
+            bestScore = sim;
+            bestName = record.name;
+        }
+    }
+
+    const float threshold = 0.5f;
+    if (bestScore >= threshold) {
+         resultText = QString("OK: %1 (%2)").arg(bestName).arg(QString::number(bestScore, 'f', 6));
+
+        cv::putText(dst, "OK", cv::Point(10, 20),
+                    cv::FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar(0, 255, 0), 1);
+        qDebug() << "Matched:" << bestName << ", score:" << bestScore;
+    } else {
+      resultText = QString("No Match (%1)").arg(QString::number(bestScore, 'f', 6));
+        cv::putText(dst, "No Match", cv::Point(10, 20),
+                    cv::FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar(0, 0, 255), 1);
+        qDebug() << "No match. Best score:" << bestScore;
+    }
+
+    outputs_.addData("messege", resultText);
+    return finalizeOutput(dst, 1, start);
+}
+
 bool FaceDetect::validateInputs()
 {
     const std::vector<IOData>& data = inputs_.data;

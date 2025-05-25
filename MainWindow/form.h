@@ -65,7 +65,7 @@ private slots:
 
     void on_colorSelect_clicked();
 
-    void on_pushButton_6_clicked();
+   // void on_pushButton_6_clicked();
 
 protected:
     //void dropEvent(QDropEvent *event) override;

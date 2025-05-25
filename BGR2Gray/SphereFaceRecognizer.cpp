@@ -36,10 +36,10 @@ cv::Mat SphereFaceRecognizer::alignFace(const cv::Mat& image, const FaceInfo& fa
     warpAffine(image, aligned, trans, Size(96, 112));
     return aligned;
 }
-
+/*
 bool SphereFaceRecognizer::extractFeature(const cv::Mat& image, cv::Mat& feature)
 {
-    std::vector<FaceInfo> faces = mtcnn_.Detect_mtcnn(image, 40, new float[3]{0.6f, 0.7f, 0.7f}, 0.709f, 3);
+    std::vector<FaceInfo> faces = mtcnn_.Detect_mtcnn(image, 12, new float[3]{0.6f, 0.7f, 0.7f}, 0.709f, 3);
     if (faces.empty()) return false;
 
     Mat alignedFace = alignFace(image, faces[0]);
@@ -49,8 +49,33 @@ bool SphereFaceRecognizer::extractFeature(const cv::Mat& image, cv::Mat& feature
 
     normalize(output, feature); // L2 归一化
     return true;
-}
 
+
+}
+*/
+
+
+bool SphereFaceRecognizer::extractFeature(const cv::Mat& image, cv::Mat& feature)
+{
+    std::vector<FaceInfo> faces = mtcnn_.Detect_mtcnn(image, 12, new float[3]{0.6f, 0.7f, 0.7f}, 0.709f, 3);
+    if (faces.empty()) return false;
+
+    // 1. 对齐人脸
+    cv::Mat alignedFace = alignFace(image, faces[0]);
+
+    // 2. 转换为 RGB（很多模型要求）
+    cv::Mat rgb;
+    cv::cvtColor(alignedFace, rgb, cv::COLOR_BGR2RGB);
+
+    // 3. blob 输入模型
+    cv::Mat inputBlob = cv::dnn::blobFromImage(rgb, 1.0 / 255, cv::Size(112, 96));
+
+    net_.setInput(inputBlob, "data");
+    cv::Mat output = net_.forward("fc5");
+
+    normalize(output, feature); // L2 归一化
+    return true;
+}
 float SphereFaceRecognizer::compareFaces(const cv::Mat& img1, const cv::Mat& img2)
 {
     Mat feat1, feat2;

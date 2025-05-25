@@ -50,14 +50,7 @@ bool FaceDatabase::save(const QString& filename) {
         file_in.close();
     }
 
-    // Step 2: 构建 name -> index 映射，便于查重更新
-    QMap<QString, int> nameToIndex;
-    for (int i = 0; i < existingArray.size(); ++i) {
-        QJsonObject obj = existingArray[i].toObject();
-        nameToIndex[obj["name"].toString()] = i;
-    }
-
-    // Step 3: 遍历 records，更新或追加
+    // Step 2: 追加新记录（不去重）
     for (const FaceRecord& rec : records) {
         QJsonObject obj;
         obj["name"] = rec.name;
@@ -67,18 +60,12 @@ bool FaceDatabase::save(const QString& filename) {
             feat.append(v);
         obj["feature"] = feat;
 
-        if (nameToIndex.contains(rec.name)) {
-            // 更新原记录
-            existingArray[nameToIndex[rec.name]] = obj;
-        } else {
-            // 追加新记录
-            existingArray.append(obj);
-        }
+        existingArray.append(obj);
     }
 
-    // Step 4: 将更新后的 array 写回文件
+    // Step 3: 写回文件
     QFile file_out(filename);
-    if (!file_out.open(QIODevice::WriteOnly)) return false;
+    if (!file_out.open(QIODevice::WriteOnly | QIODevice::Truncate)) return false;
     QJsonDocument outDoc(existingArray);
     file_out.write(outDoc.toJson());
     file_out.close();

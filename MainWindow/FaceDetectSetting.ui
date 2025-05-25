@@ -35,12 +35,12 @@
           <widget class="QComboBox" name="ToolType">
            <item>
             <property name="text">
-             <string>人脸录入</string>
+             <string>人脸识别</string>
             </property>
            </item>
            <item>
             <property name="text">
-             <string>人脸识别</string>
+             <string>人脸录入</string>
             </property>
            </item>
           </widget>

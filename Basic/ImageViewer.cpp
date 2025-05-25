@@ -109,6 +109,23 @@ void ImageViewer::paintEvent(QPaintEvent *event)
     QImage image_overlay = MatToQImage(overlay_);
     QImage image = MatToQImage(image_);
     QPainter painter(this);
+
+    if(showMessage_)
+    {
+        painter.setPen(Qt::red);
+        painter.setFont(QFont("Arial", 12, QFont::Bold));
+
+        QFontMetrics fm(painter.font());
+        int textHeight = fm.height();
+
+        int x = 10;               // 左边留 10 像素边距
+        int y = textHeight + 10;  // 上边留 10 像素边距
+
+        painter.drawText(x, y, faceMessage_);
+    }
+
+
+
     QRect targetRect(offset_, QSize(image.width() * scaleFactor_, image.height() * scaleFactor_));
     painter.drawImage(targetRect, image);
    painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
@@ -352,7 +369,17 @@ void ImageViewer::resizeEvent(QResizeEvent  *event)
 }
 
 
-
+void ImageViewer::showMessege(QString msg)
+{
+    faceMessage_ = msg;
+    showMessage_ = true;
+    update(); // 触发重绘
+}
+void ImageViewer::clearMessege()
+{
+    showMessage_ = false;
+    update(); // 触发重绘
+}
 
 
 
@@ -363,6 +390,7 @@ void ImageViewer::updateImageDisplay()
         const cv::Mat &mat = images_.at(currentImageIndex_);
         setImage(mat);
         centerImage();
+        clearMessege();
 
     }
 }

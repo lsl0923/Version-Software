@@ -24,6 +24,8 @@ public:
     void setName() override;
     void faceDetect_Haar(cv::Mat& img, cv::Mat& dst, std::vector<cv::Rect>& faceRects);
     void faceDetect_FastMTCNN(cv::Mat& img, cv::Mat& dst, std::vector<cv::Rect>& faceRects);
+    int finalizeOutput(const cv::Mat& img, int code,
+                                   std::chrono::high_resolution_clock::time_point start);
 
 private:
     SphereFaceRecognizer recognizer_;

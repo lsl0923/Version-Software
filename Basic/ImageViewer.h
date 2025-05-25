@@ -40,6 +40,8 @@ public:
     void setMode(PaintMode mode);
     QColor& getColor();
     void setColor(QColor& color);
+    void showMessege(QString msg);
+    void clearMessege();
 protected:
     void paintEvent(QPaintEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
@@ -47,6 +49,7 @@ protected:
     void mouseMoveEvent(QMouseEvent *event) override;
     void wheelEvent(QWheelEvent *event) override;
     void resizeEvent(QResizeEvent  *event) override;
+
 
 private:
     void updateImageDisplay(); // 更新当前显示的图像
@@ -73,6 +76,8 @@ private:
     bool drawing_;
     PaintMode paintmode_;
     QColor selectedColor_;
+    QString faceMessage_;
+    bool showMessage_ = false;
 };
 
 #endif // IMAGEVIEWER_H

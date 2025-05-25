@@ -212,6 +212,14 @@ void Form::on_pushButton_clicked()
             imageViewer_->setImage(std::any_cast<cv::Mat>(finalOutput.getDataValue("image")));
 
         }
+        if(finalOutput.getDataValue("messege").type() == typeid(QString))
+        {
+            imageViewer_->showMessege(std::any_cast<QString>(finalOutput.getDataValue("messege")));
+        }
+        else
+        {
+            imageViewer_->clearMessege();
+        }
     qDebug() << "Tool flow executed successfully!";
     }
     else

@@ -19,6 +19,8 @@ FaceDetectSetting::FaceDetectSetting(std::shared_ptr<ToolsBase> tool,cv::Mat img
     viewer_->centerImage();
     img_ = img.clone();
     ui->lineEdit_2->setEnabled(false);
+    isSave_ = 0;
+    ui->lineEdit->setEnabled(false);
 }
 
 FaceDetectSetting::~FaceDetectSetting()
