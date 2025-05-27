@@ -10,13 +10,15 @@
 #include"BinaryThresholdTool.h"
 #include "BGR2Gray_global.h"
 #include "FaceDetect.h"
+#include"Filter.h"
 Manager::Manager()
 {
     toolsInfo_.push_back( ToolsInfo("BGR2Gray", "libBGR2Gary.so", "预处理", "Converts BGR images to grayscale."));
-    toolsInfo_.push_back( ToolsInfo("Gray2BGR", "libBGR2Gary.so", "Filter", "Test Filter"));
+    toolsInfo_.push_back( ToolsInfo("Gray2BGR", "libBGR2Gary.so", "预处理", "Test Filter"));
     toolsInfo_.emplace_back("BinaryThresholdTool", "ImageProcessing", "预处理", "Performs binary thresholding on images");
     toolsInfo_.emplace_back("TemMatcher", "ImageProcessing", "模版匹配", "模版匹配");
-    toolsInfo_.emplace_back("FaceDetect", "ImageProcessing", "人脸识别", "模版匹配");
+    toolsInfo_.emplace_back("FaceDetect", "ImageProcessing", "人脸识别", "");
+    toolsInfo_.emplace_back("Filter","ImageProcessing","预处理","预处理");
 }
 
 
@@ -42,6 +44,10 @@ ToolsBase* Manager::createTools(const ToolsInfo& pluginName)
     else if(pluginName.name == "FaceDetect")
     {
         return new FaceDetect();
+    }
+    else if(pluginName.name == "Filter")
+    {
+        return new Filter();
     }
     return nullptr;
 }

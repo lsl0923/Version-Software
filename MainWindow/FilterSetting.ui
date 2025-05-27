@@ -1,91 +1,87 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>ThresholdDialog</class>
- <widget class="QDialog" name="ThresholdDialog">
+ <class>FilterSetting</class>
+ <widget class="QDialog" name="FilterSetting">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1003</width>
-    <height>595</height>
+    <width>1052</width>
+    <height>662</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="0">
-    <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="2,0">
+  <layout class="QVBoxLayout" name="verticalLayout_13">
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_10" stretch="1,0">
      <item>
-      <widget class="QFrame" name="frame">
+      <widget class="QFrame" name="frame_4">
        <property name="frameShape">
         <enum>QFrame::StyledPanel</enum>
        </property>
        <property name="frameShadow">
         <enum>QFrame::Raised</enum>
        </property>
-       <layout class="QVBoxLayout" name="verticalLayout_3"/>
+       <layout class="QVBoxLayout" name="verticalLayout_10"/>
       </widget>
      </item>
      <item>
-      <layout class="QVBoxLayout" name="verticalLayout_2">
+      <layout class="QVBoxLayout" name="verticalLayout_11">
        <item>
-        <layout class="QVBoxLayout" name="verticalLayout">
+        <layout class="QVBoxLayout" name="verticalLayout_12">
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout">
+          <layout class="QHBoxLayout" name="horizontalLayout_11">
            <item>
-            <widget class="QLabel" name="label">
+            <widget class="QLabel" name="label_7">
              <property name="text">
-              <string>阈值</string>
+              <string>滤波核大小</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QSpinBox" name="threshold">
+            <widget class="QSpinBox" name="threshold_4">
+             <property name="minimum">
+              <number>1</number>
+             </property>
              <property name="maximum">
-              <number>255</number>
+              <number>33</number>
+             </property>
+             <property name="singleStep">
+              <number>2</number>
              </property>
              <property name="value">
-              <number>128</number>
+              <number>3</number>
              </property>
             </widget>
            </item>
           </layout>
          </item>
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <layout class="QHBoxLayout" name="horizontalLayout_12">
            <item>
-            <widget class="QLabel" name="label_2">
+            <widget class="QLabel" name="label_8">
              <property name="text">
-              <string>二值化模式</string>
+              <string>滤波方法</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QComboBox" name="comboBox">
+            <widget class="QComboBox" name="comboBox_4">
              <item>
               <property name="text">
-               <string>THRESH_BINARY</string>
+               <string>中值滤波</string>
               </property>
              </item>
              <item>
               <property name="text">
-               <string>THRESH_BINARY_INV</string>
+               <string>均值滤波</string>
               </property>
              </item>
              <item>
               <property name="text">
-               <string>THRESH_TRUNC</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>THRESH_TOZERO</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>THRESH_TOZERO_INV</string>
+               <string>高斯滤波</string>
               </property>
              </item>
             </widget>
@@ -95,7 +91,7 @@
         </layout>
        </item>
        <item>
-        <spacer name="verticalSpacer">
+        <spacer name="verticalSpacer_4">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
          </property>
@@ -128,7 +124,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>ThresholdDialog</receiver>
+   <receiver>FilterSetting</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -144,7 +140,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>ThresholdDialog</receiver>
+   <receiver>FilterSetting</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">

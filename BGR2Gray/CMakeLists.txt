@@ -29,6 +29,7 @@ add_library(BGR2Gray MODULE
   FastMTCNN.h
   SphereFaceRecognizer.h SphereFaceRecognizer.cpp
   FaceDatabase.h FaceDatabase.cpp
+  Filter.h Filter.cpp
 
 )
 

@@ -12,7 +12,7 @@ class BGR2GRAY_EXPORT FaceDetect: public ToolsBase
 public:
     FaceDetect();
     virtual ~FaceDetect() override;
-
+    void initInput();
     // 重写 runSub 方法
     int runSub() override;
     void addFace();

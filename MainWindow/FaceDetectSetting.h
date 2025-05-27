@@ -26,7 +26,6 @@ private slots:
     void on_ToolType_currentTextChanged(const QString &arg1);
 
     void on_buttonBox_accepted();
-
 private:
     Ui::FaceDetectSetting *ui;
     ImageViewer* viewer_;

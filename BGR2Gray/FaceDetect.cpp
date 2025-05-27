@@ -13,8 +13,17 @@ FaceDetect::FaceDetect()
     :recognizer_("../../../model/sphereface-model/","../../../model/Fast-MTCNN-master/model")
 {
     setName();
+    initInput();
 }
+void FaceDetect::initInput()
+{
 
+    IOConfig config;
+    config.addData("personName", "Unknow");
+    config.addData("isSave",0);
+    // 设置到 tool_
+    this->setInputs(config);
+}
 FaceDetect::~FaceDetect()
 {
     // 确保有定义
@@ -70,7 +79,7 @@ void FaceDetect::faceDetect_Haar(cv::Mat& img, cv::Mat& dst, std::vector<cv::Rec
     static bool loaded = false;
     if (!loaded)
     {
-        if (!face_cascade.load("../../../model/haarcascade_frontalface_default.xml"))
+        if (!face_cascade.load("../../../model/Haar/haarcascade_frontalface_alt.xml"))
         {
             //QString currentDir = QCoreApplication::applicationDirPath();
             //qDebug() << "当前路径：" << currentDir;
@@ -136,7 +145,7 @@ int FaceDetect::runSub()
     std::vector<cv::Rect> faceRects;
     cv::Mat tmp;
     faceDetect_FastMTCNN(img, dst, faceRects);
-
+    //faceDetect_Haar(img,dst,faceRects);
     if (faceRects.empty())
     {
         qWarning() << "No face detected!";

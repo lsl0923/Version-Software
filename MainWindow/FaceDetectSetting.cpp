@@ -21,6 +21,7 @@ FaceDetectSetting::FaceDetectSetting(std::shared_ptr<ToolsBase> tool,cv::Mat img
     ui->lineEdit_2->setEnabled(false);
     isSave_ = 0;
     ui->lineEdit->setEnabled(false);
+
 }
 
 FaceDetectSetting::~FaceDetectSetting()

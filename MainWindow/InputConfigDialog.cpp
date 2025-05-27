@@ -6,6 +6,7 @@
 #include"ThresholdDialog.h"
 #include"TemMatcherSetting.h"
 #include"FaceDetectSetting.h"
+#include"FilterSetting.h"
 InputConfigDialog::InputConfigDialog(std::string id ,cv::Mat img ,QWidget *parent)
     : QDialog(parent)
     , ui(new Ui::InputConfigDialog)
@@ -256,6 +257,12 @@ void InputConfigDialog::on_inputListWidget_itemDoubleClicked(QListWidgetItem *it
     {
         FaceDetectSetting facedetect(tool_,img_);  // 创建对话框
         facedetect.exec();
+        return;
+    }
+    else if(tool_->getName() == "Filter")
+    {
+        FilterSetting Filter(tool_,img_);  // 创建对话框
+        Filter.exec();
         return;
     }
 }
