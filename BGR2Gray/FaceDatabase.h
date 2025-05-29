@@ -10,9 +10,9 @@
 
 struct FaceRecord {
     QString name;
-    std::vector<float> feature;
+    std::vector<float> feature;              // 全局特征
+    std::vector<std::vector<float>> localFeats; // 五个关键点局部特征（每个是512维）
 };
-
 class FaceDatabase {
 public:
     bool load(const QString& filename);

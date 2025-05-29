@@ -25,7 +25,7 @@
 #include"InputConfigDialog.h"
 #include "CameraManager.h"
 #include "CameraSettingsDialog.h"
-#include"FaceDetectSetting.h"
+//#include"FaceDetectSetting.h"
 
 Form::Form(QWidget *parent)
     : QWidget(parent)

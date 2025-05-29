@@ -14,7 +14,7 @@ public:
 
     // 比较两张图像中的人脸是否相同
     float compareFaces(const cv::Mat& img1, const cv::Mat& img2);
-
+    bool extractRawFeature(const cv::Mat& alignedImg, cv::Mat& feature);
 private:
     cv::Mat alignFace(const cv::Mat& image, const FaceInfo& faceInfo);
 

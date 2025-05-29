@@ -33,7 +33,7 @@ void FaceDetect::setName()
     name_ = "FaceDetect";
 }
 
-void FaceDetect::faceDetect_FastMTCNN(cv::Mat& img, cv::Mat& dst, std::vector<cv::Rect>& faceRects)
+std::vector<FaceInfo> FaceDetect::faceDetect_FastMTCNN(cv::Mat& img, cv::Mat& dst, std::vector<cv::Rect>& faceRects)
 {
     // 初始化 MTCNN 检测器（路径根据你本地模型位置修改）
     MTCNN detector("../../../model/Fast-MTCNN-master/model");
@@ -43,7 +43,7 @@ void FaceDetect::faceDetect_FastMTCNN(cv::Mat& img, cv::Mat& dst, std::vector<cv
 
     // 检测参数
     float factor = 0.709f;
-    float threshold[3] = { 0.7f, 0.6f, 0.6f };
+    float threshold[3] = { 0.4f, 0.5f, 0.6f };
     int minSize = 12;
 
     // 开始计时
@@ -68,6 +68,7 @@ void FaceDetect::faceDetect_FastMTCNN(cv::Mat& img, cv::Mat& dst, std::vector<cv
         faceRects.push_back(rect);
         cv::rectangle(dst, rect, cv::Scalar(255, 0, 0), 2);
     }
+    return faceInfo;
 }
 void FaceDetect::faceDetect_Haar(cv::Mat& img, cv::Mat& dst, std::vector<cv::Rect>& faceRects)
 {
@@ -113,7 +114,185 @@ int FaceDetect::finalizeOutput(const cv::Mat& img, int code,
     outputs_.addData("runTime", elapsed.count());
     return code;
 }
-int FaceDetect::runSub()
+std::vector<cv::Rect> getFivePointROIs(const FaceInfo& face, int patchSize = 40)
+{
+    std::vector<cv::Rect> rois;
+    for (int i = 0; i < 5; ++i) {
+        int x = static_cast<int>(face.landmark[2 * i] - patchSize / 2);
+        int y = static_cast<int>(face.landmark[2 * i + 1] - patchSize / 2);
+        rois.emplace_back(x, y, patchSize, patchSize);
+    }
+    return rois;
+}
+
+std::vector<std::vector<float>> extractLocalFeatures(
+    const cv::Mat& img,
+    const std::vector<cv::Rect>& rois,
+    SphereFaceRecognizer& recognizer)
+{
+    std::vector<std::vector<float>> features;
+    for (const auto& roi : rois)
+    {
+        cv::Rect safeROI = roi & cv::Rect(0, 0, img.cols, img.rows);
+        if (safeROI.width <= 0 || safeROI.height <= 0) {
+            features.emplace_back();  // 空特征
+            continue;
+        }
+
+        cv::Mat patch = img(safeROI).clone();
+        cv::resize(patch, patch, cv::Size(112, 112));
+
+        cv::Mat featMat;
+        if (!recognizer.extractRawFeature(patch, featMat) || featMat.empty()) {
+            features.emplace_back();  // 空特征
+            continue;
+        }
+
+        std::vector<float> featVec;
+        featVec.assign(featMat.ptr<float>(), featMat.ptr<float>() + featMat.total());
+
+        features.push_back(std::move(featVec));
+    }
+    return features;
+}
+
+
+
+int FaceDetect::globalRun()
+{
+    const QString dbFile = "../../../FaceData/faces.json";
+    QString resultText = "NG";
+    if (!validateInputs()) {
+        qWarning() << "Input ERROR!";
+        return -1;
+    }
+
+    const auto start = std::chrono::high_resolution_clock::now();
+
+    // 读取图像
+    cv::Mat img;
+    if (inputs_.getDataValue("image").type() == typeid(cv::Mat))
+    {
+        img = std::any_cast<cv::Mat>(inputs_.getDataValue("image"));
+    }
+
+    if (img.empty())
+    {
+        qWarning() << "Empty or invalid image!";
+        return finalizeOutput(img, -1, start);
+    }
+    // 是否是保存模式
+    int isSave = 0;
+    if (inputs_.getDataValue("isSave").type() == typeid(int)) {
+        isSave = std::any_cast<int>(inputs_.getDataValue("isSave"));
+    }
+
+    cv::Mat dst = img.clone();
+    std::vector<cv::Rect> faceRects;
+    cv::Mat tmp;
+    std::vector<FaceInfo> faceinfo =  faceDetect_FastMTCNN(img, dst, faceRects);
+    //faceDetect_Haar(img,dst,faceRects);
+    if (faceRects.empty())
+    {
+        qWarning() << "No face detected!";
+        resultText = "No face detected!";
+        outputs_.addData("messege", resultText);
+        return finalizeOutput(dst, -1, start);
+    }
+
+    // 裁剪第一张人脸
+    cv::Mat feature;
+
+    if (!recognizer_.extractFeature(img, feature))
+    {
+        qWarning() << "Failed to extract face feature!";
+        cv::putText(dst, "NG", cv::Point(10, 20),
+                    cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 255), 1);
+        return finalizeOutput(dst, -1, start);
+    }
+
+    // 保存模式
+    if (isSave == 1)
+    {
+        resultText = "NG";
+        QString name = "Unnamed";
+        if (inputs_.getDataValue("personName").type() == typeid(QString)) {
+            name = std::any_cast<QString>(inputs_.getDataValue("personName"));
+        }
+        if(name == "")
+        {
+            return finalizeOutput(dst, -1, start);
+        }
+        std::vector<cv::Rect> rois = getFivePointROIs(faceinfo[0]);
+        std::vector<std::vector<float>> localFeats = extractLocalFeatures(img, rois, recognizer_);
+
+        if (localFeats.size() != 5) {
+            qWarning() << "Failed to extract 5 local features!";
+            return finalizeOutput(dst, -1, start);
+        }
+        db_.add(FaceRecord{name, feature,localFeats});
+        if (db_.save(dbFile))
+        {
+            resultText = "Saved face for:" + name;
+            qDebug() << "Saved face for:" << name;
+            cv::putText(dst, "OK", cv::Point(10, 20),
+                        cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 255, 0), 1);
+        }
+        else
+        {
+            resultText ="Failed to save database!";
+            qWarning() << "Failed to save database!";
+            cv::putText(dst, "NG", cv::Point(10, 20),
+                        cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 255), 1);
+        }
+        outputs_.addData("messege", resultText);
+        return finalizeOutput(dst, 1, start);
+    }
+
+    // 识别模式
+    resultText = "NG";
+    db_.load(dbFile);
+
+    std::vector<float> featVec;
+    if (feature.isContinuous()) {
+        featVec.assign((float*)feature.datastart, (float*)feature.dataend);
+    } else
+    {
+        for (int i = 0; i < feature.rows; ++i) {
+            const float* rowPtr = feature.ptr<float>(i);
+            featVec.insert(featVec.end(), rowPtr, rowPtr + feature.cols);
+        }
+    }
+
+    QString bestName = "Unknown";
+    float bestScore = -1.0f;
+    for (const auto& record : db_.records)
+    {
+        float sim = db_.cosineSimilarity(featVec, record.feature);
+        if (sim > bestScore) {
+            bestScore = sim;
+            bestName = record.name;
+        }
+    }
+
+    const float threshold = 0.5f;
+    if (bestScore >= threshold) {
+        resultText = QString("OK: %1 (%2)").arg(bestName).arg(QString::number(bestScore, 'f', 6));
+
+        cv::putText(dst, "OK", cv::Point(10, 20),
+                    cv::FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar(0, 255, 0), 1);
+        qDebug() << "Matched:" << bestName << ", score:" << bestScore;
+    } else {
+        resultText = QString("No Match (%1)").arg(QString::number(bestScore, 'f', 6));
+        cv::putText(dst, "No Match", cv::Point(10, 20),
+                    cv::FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar(0, 0, 255), 1);
+        qDebug() << "No match. Best score:" << bestScore;
+    }
+
+    outputs_.addData("messege", resultText);
+    return finalizeOutput(dst, 1, start);
+}
+int FaceDetect::localRun()
 {
     const QString dbFile = "../../../FaceData/faces.json";
     QString resultText = "NG";
@@ -129,59 +308,58 @@ int FaceDetect::runSub()
     if (inputs_.getDataValue("image").type() == typeid(cv::Mat)) {
         img = std::any_cast<cv::Mat>(inputs_.getDataValue("image"));
     }
-
     if (img.empty()) {
         qWarning() << "Empty or invalid image!";
         return finalizeOutput(img, -1, start);
     }
 
-    // 是否是保存模式
     int isSave = 0;
     if (inputs_.getDataValue("isSave").type() == typeid(int)) {
         isSave = std::any_cast<int>(inputs_.getDataValue("isSave"));
     }
-
+    std::vector<cv::Rect> faceInfos;
     cv::Mat dst = img.clone();
-    std::vector<cv::Rect> faceRects;
-    cv::Mat tmp;
-    faceDetect_FastMTCNN(img, dst, faceRects);
-    //faceDetect_Haar(img,dst,faceRects);
-    if (faceRects.empty())
-    {
+    std::vector<FaceInfo> faceinfo = faceDetect_FastMTCNN(img, dst, faceInfos);
+
+    if (faceinfo.empty()) {
         qWarning() << "No face detected!";
         resultText = "No face detected!";
         outputs_.addData("messege", resultText);
         return finalizeOutput(dst, -1, start);
     }
 
-    // 裁剪第一张人脸
-    cv::Mat feature;
+    // 提取第一张人脸
+    cv::Mat globalFeature;
+    if (!recognizer_.extractFeature(img, globalFeature))
+    {
+        qWarning() << "Failed to extract global feature!";
+        return finalizeOutput(dst, -1, start);
+    }
 
-    if (!recognizer_.extractFeature(img, feature)) {
-        qWarning() << "Failed to extract face feature!";
-        cv::putText(dst, "NG", cv::Point(10, 20),
-                    cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 255), 1);
+    std::vector<cv::Rect> rois = getFivePointROIs(faceinfo[0]);
+    std::vector<std::vector<float>> localFeats = extractLocalFeatures(img, rois, recognizer_);
+
+    if (localFeats.size() != 5) {
+        qWarning() << "Failed to extract 5 local features!";
         return finalizeOutput(dst, -1, start);
     }
 
     // 保存模式
-    if (isSave == 1)
-    {
-         resultText = "NG";
+    if (isSave == 1) {
         QString name = "Unnamed";
         if (inputs_.getDataValue("personName").type() == typeid(QString)) {
             name = std::any_cast<QString>(inputs_.getDataValue("personName"));
         }
 
-        db_.add(FaceRecord{name, feature});
+        db_.add(FaceRecord{name, globalFeature, localFeats});
         if (db_.save(dbFile)) {
-            resultText = "Saved face for:" + name;
-            qDebug() << "Saved face for:" << name;
+            resultText = "Saved face for: " + name;
+            qDebug() << resultText;
             cv::putText(dst, "OK", cv::Point(10, 20),
                         cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 255, 0), 1);
         } else {
-            resultText ="Failed to save database!";
-            qWarning() << "Failed to save database!";
+            resultText = "Failed to save database!";
+            qWarning() << resultText;
             cv::putText(dst, "NG", cv::Point(10, 20),
                         cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 255), 1);
         }
@@ -190,38 +368,45 @@ int FaceDetect::runSub()
     }
 
     // 识别模式
-     resultText = "NG";
     db_.load(dbFile);
-
-    std::vector<float> featVec;
-    if (feature.isContinuous()) {
-        featVec.assign((float*)feature.datastart, (float*)feature.dataend);
-    } else {
-        for (int i = 0; i < feature.rows; ++i) {
-            const float* rowPtr = feature.ptr<float>(i);
-            featVec.insert(featVec.end(), rowPtr, rowPtr + feature.cols);
-        }
-    }
-
     QString bestName = "Unknown";
     float bestScore = -1.0f;
-    for (const auto& record : db_.records) {
-        float sim = db_.cosineSimilarity(featVec, record.feature);
-        if (sim > bestScore) {
-            bestScore = sim;
-            bestName = record.name;
+
+    for (const auto& record : db_.records)
+    {
+        if (record.localFeats.size() != 5) continue;
+
+        float totalSim = 0.0f;
+        int validCount = 0;
+
+        for (int i = 0; i < 5; ++i) {
+            if (!localFeats[i].empty() && !record.localFeats[i].empty()) {
+                // 直接用vector，无需ptr
+                const std::vector<float>& f1 = localFeats[i];
+                const std::vector<float>& f2 = record.localFeats[i];
+
+                totalSim += db_.cosineSimilarity(f1, f2);
+                validCount++;
+            }
+        }
+
+        if (validCount >= 3) { // 至少3个点有效
+            float avgSim = totalSim / validCount;
+            if (avgSim > bestScore) {
+                bestScore = avgSim;
+                bestName = record.name;
+            }
         }
     }
 
     const float threshold = 0.5f;
     if (bestScore >= threshold) {
-         resultText = QString("OK: %1 (%2)").arg(bestName).arg(QString::number(bestScore, 'f', 6));
-
+        resultText = QString("OK: %1 (%2)").arg(bestName).arg(QString::number(bestScore, 'f', 6));
         cv::putText(dst, "OK", cv::Point(10, 20),
                     cv::FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar(0, 255, 0), 1);
         qDebug() << "Matched:" << bestName << ", score:" << bestScore;
     } else {
-      resultText = QString("No Match (%1)").arg(QString::number(bestScore, 'f', 6));
+        resultText = QString("No Match (%1)").arg(QString::number(bestScore, 'f', 6));
         cv::putText(dst, "No Match", cv::Point(10, 20),
                     cv::FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar(0, 0, 255), 1);
         qDebug() << "No match. Best score:" << bestScore;
@@ -229,6 +414,22 @@ int FaceDetect::runSub()
 
     outputs_.addData("messege", resultText);
     return finalizeOutput(dst, 1, start);
+}
+
+
+int FaceDetect::runSub()
+{
+    int mode = 0;
+    if (inputs_.getDataValue("mode").type() == typeid(int))
+    {
+        mode = std::any_cast<int>(inputs_.getDataValue("mode"));
+    }
+    if(mode == 1)
+    {
+         return globalRun();
+    }
+    return localRun();
+
 }
 
 bool FaceDetect::validateInputs()

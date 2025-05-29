@@ -4,72 +4,83 @@
 #include <QJsonDocument>
 #include <QJsonArray>
 
-bool FaceDatabase::load(const QString& filename) {
-    QFile file(filename);
-    // 如果文件不存在，则创建一个空的 JSON 数组文件
-    if (!file.exists()) {
-        if (!file.open(QIODevice::WriteOnly)) return false;
-        QJsonDocument emptyDoc{QJsonArray()};
-        file.write(emptyDoc.toJson());
-        file.close();
-    }
-
-    // 打开文件读取
+bool FaceDatabase::load(const QString& filePath)
+{
+    QFile file(filePath);
     if (!file.open(QIODevice::ReadOnly)) return false;
 
     QByteArray data = file.readAll();
-    file.close();
-
     QJsonDocument doc = QJsonDocument::fromJson(data);
     if (!doc.isArray()) return false;
 
-    QJsonArray array = doc.array();
-
     records.clear();
-    for (const QJsonValue& val : array) {
-        QJsonObject obj = val.toObject();
-        FaceRecord rec;
-        rec.name = obj["name"].toString();
-        QJsonArray feat = obj["feature"].toArray();
-        for (auto v : feat) rec.feature.push_back(static_cast<float>(v.toDouble()));
-        records.push_back(rec);
-    }
+    QJsonArray arr = doc.array();
+    for (const auto& value : arr)
+    {
+        QJsonObject obj = value.toObject();
+        FaceRecord record;
+        record.name = obj["name"].toString();
 
+        // 全局特征
+        QJsonArray featArray = obj["feature"].toArray();
+        for (const auto& val : featArray) {
+            record.feature.push_back(static_cast<float>(val.toDouble()));
+        }
+
+        // 局部特征
+        if (obj.contains("localFeats"))
+        {
+            QJsonArray localFeatsArray = obj["localFeats"].toArray();
+            for (const auto& featItem : localFeatsArray)
+            {
+                QJsonArray single = featItem.toArray();
+                std::vector<float> local;
+                for (const auto& val : single)
+                {
+                    local.push_back(static_cast<float>(val.toDouble()));
+                }
+                record.localFeats.push_back(local);
+            }
+        }
+
+        records.push_back(record);
+    }
     return true;
 }
 
-bool FaceDatabase::save(const QString& filename) {
-    // Step 1: 读取已有 JSON 数据（如果存在）
-    QJsonArray existingArray;
-    QFile file_in(filename);
-    if (file_in.exists() && file_in.open(QIODevice::ReadOnly)) {
-        QByteArray data = file_in.readAll();
-        QJsonDocument doc = QJsonDocument::fromJson(data);
-        if (doc.isArray())
-            existingArray = doc.array();
-        file_in.close();
-    }
-
-    // Step 2: 追加新记录（不去重）
-    for (const FaceRecord& rec : records) {
+bool FaceDatabase::save(const QString& filePath)
+{
+    QJsonArray arr;
+    for (const auto& record : records) {
         QJsonObject obj;
-        obj["name"] = rec.name;
+        obj["name"] = record.name;
 
-        QJsonArray feat;
-        for (float v : rec.feature)
-            feat.append(v);
-        obj["feature"] = feat;
+        // 全局特征
+        QJsonArray featArray;
+        for (float v : record.feature)
+        {
+            featArray.append(v);
+        }
+        obj["feature"] = featArray;
 
-        existingArray.append(obj);
+        // 局部特征数组
+        QJsonArray localFeatsArray;
+        for (const auto& local : record.localFeats)
+        {
+            QJsonArray oneFeat;
+            for (float val : local) {
+                oneFeat.append(val);
+            }
+            localFeatsArray.append(oneFeat);
+        }
+        obj["localFeats"] = localFeatsArray;
+
+        arr.append(obj);
     }
 
-    // Step 3: 写回文件
-    QFile file_out(filename);
-    if (!file_out.open(QIODevice::WriteOnly | QIODevice::Truncate)) return false;
-    QJsonDocument outDoc(existingArray);
-    file_out.write(outDoc.toJson());
-    file_out.close();
-
+    QFile file(filePath);
+    if (!file.open(QIODevice::WriteOnly)) return false;
+    file.write(QJsonDocument(arr).toJson());
     return true;
 }
 void FaceDatabase::add(const FaceRecord& record) {

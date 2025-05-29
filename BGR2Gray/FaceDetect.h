@@ -23,13 +23,15 @@ public:
     virtual std::string getOutputType(const std::string& outputName) override; // 获取某个输出的类型
     void setName() override;
     void faceDetect_Haar(cv::Mat& img, cv::Mat& dst, std::vector<cv::Rect>& faceRects);
-    void faceDetect_FastMTCNN(cv::Mat& img, cv::Mat& dst, std::vector<cv::Rect>& faceRects);
+    std::vector<FaceInfo> faceDetect_FastMTCNN(cv::Mat& img, cv::Mat& dst, std::vector<cv::Rect>& faceRects);
     int finalizeOutput(const cv::Mat& img, int code,
                                    std::chrono::high_resolution_clock::time_point start);
-
+    int globalRun();
+    int localRun();
 private:
     SphereFaceRecognizer recognizer_;
     FaceDatabase db_;
+
 };
 
 

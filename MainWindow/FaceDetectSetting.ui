@@ -46,6 +46,20 @@
           </widget>
          </item>
          <item>
+          <widget class="QComboBox" name="mode">
+           <item>
+            <property name="text">
+             <string>全局特征匹配</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>局部关键点匹配</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+         <item>
           <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,3">
            <item>
             <widget class="QLineEdit" name="lineEdit_2">

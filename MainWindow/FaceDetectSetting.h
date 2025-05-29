@@ -17,7 +17,7 @@ class FaceDetectSetting : public QDialog
 public:
     explicit FaceDetectSetting(std::shared_ptr<ToolsBase> tool,cv::Mat img, QWidget *parent = nullptr);
     ~FaceDetectSetting();
-
+    void update();
 private slots:
     void on_FaceDetectSetting_accepted();
 
@@ -26,6 +26,8 @@ private slots:
     void on_ToolType_currentTextChanged(const QString &arg1);
 
     void on_buttonBox_accepted();
+    void on_mode_currentTextChanged(const QString &arg1);
+
 private:
     Ui::FaceDetectSetting *ui;
     ImageViewer* viewer_;
@@ -34,6 +36,7 @@ private:
     cv::Mat img_;
     int isSave_;
     QString personName_;
+    int mode_;
 };
 
 #endif // FACEDETECTSETTING_H

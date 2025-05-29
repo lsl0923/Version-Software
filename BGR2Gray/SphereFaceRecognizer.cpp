@@ -54,7 +54,22 @@ bool SphereFaceRecognizer::extractFeature(const cv::Mat& image, cv::Mat& feature
 }
 */
 
+bool SphereFaceRecognizer::extractRawFeature(const cv::Mat& alignedImg, cv::Mat& feature)
+{
+    // 如果输入不是 112x96，则手动 resize，保证一致性
+    cv::Mat resized;
+    cv::resize(alignedImg, resized, cv::Size(112, 96));
 
+    cv::Mat rgb;
+    cv::cvtColor(resized, rgb, cv::COLOR_BGR2RGB);
+
+    cv::Mat inputBlob = cv::dnn::blobFromImage(rgb, 1.0 / 255, cv::Size(112, 96));
+    net_.setInput(inputBlob, "data");
+    cv::Mat output = net_.forward("fc5");
+
+    normalize(output, feature); // L2 normalize
+    return true;
+}
 bool SphereFaceRecognizer::extractFeature(const cv::Mat& image, cv::Mat& feature)
 {
     std::vector<FaceInfo> faces = mtcnn_.Detect_mtcnn(image, 12, new float[3]{0.6f, 0.7f, 0.7f}, 0.709f, 3);
